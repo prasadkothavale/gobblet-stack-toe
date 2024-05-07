@@ -1,0 +1,29 @@
+{
+  "name": "cup-stack-toe-desktop",
+  "version": "1.0.0",
+  "description": "Cup stack toe desktop app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prasadkothavale/cup-stack-toe.git"
+  },
+  "keywords": [
+    "electron",
+    "cup-stack-toe",
+    "desktop",
+    "javascript"
+  ],
+  "author": "prasadkothavale@yahoo.co.in",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/prasadkothavale/cup-stack-toe/issues"
+  },
+  "homepage": "https://github.com/prasadkothavale/cup-stack-toe#readme",
+  "devDependencies": {
+    "electron": "^30.0.2"
+  }
+}

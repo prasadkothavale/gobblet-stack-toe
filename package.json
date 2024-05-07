@@ -1,0 +1,6 @@
+{
+    "name": "cup-stack-toe",
+    "version": "1.0.0",
+    "description": "Cup stack toe npm workspaces",
+    "workspaces": ["cup-stack-toe-desktop", "cup-stack-toe-server", "cup-stack-toe-ui"]
+}
