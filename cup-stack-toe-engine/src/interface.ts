@@ -1,13 +1,18 @@
-export enum Cup {
-    B1, B2, B3, R1, R2, R3
+export interface Player {
+    id: number,
+    name: string,
+    color: string
 }
 
-export enum Location {
-    A1, A2, A3, B1, B2, B3, C1, C2, C3, X
+export interface Cup {
+    player: Player,
+    size: number
 }
 
-export enum Player {
-    B, R
+export interface Location {
+    board: boolean
+    x: number | null,
+    y: number | null
 }
 
 export interface Move {
@@ -18,6 +23,22 @@ export interface Move {
 
 export interface Game {
     moves: Move[];
-    board: Map<Location, Cup[]>
-    turn: Player
+    board: Cup[][][];
+    pool: Cup[];
+    turn: Player;
+    state: GameState;
+    winner: Player | null;
+    config: GameConfig;
+}
+
+export enum GameState {
+    LIVE, END
+}
+
+export interface GameConfig {
+    players: Player[];
+    boardSize: number;
+    cupSize: number;
+    cupsPerSize: number;
+    turn: Player;
 }
