@@ -4,15 +4,25 @@ export interface Player {
     color: string
 }
 
-export interface Cup {
-    player: Player,
-    size: number
+export class Cup {
+    player: Player;
+    size: number;
+
+    equals(other: Cup): boolean {
+        return this.player === other.player && this.size === other.size;
+    }
 }
 
-export interface Location {
-    board: boolean
-    x: number | null,
-    y: number | null
+export class Location {
+    
+    board: boolean;
+    x: number;
+    y: number;
+    
+    equals(other: Location): boolean {
+        return this.board === other.board && this.x === other.x && this.y === other.y;
+    }
+
 }
 
 export interface Move {
@@ -41,4 +51,9 @@ export interface GameConfig {
     cupSize: number;
     cupsPerSize: number;
     turn: Player;
+}
+
+export interface MoveStatus {
+    valid: boolean;
+    reason: string;
 }

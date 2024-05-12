@@ -1,4 +1,4 @@
-import { Move, Cup, Player, Game, GameState, GameConfig } from './interface';
+import { Move, Cup, Player, Game, GameState, GameConfig, Location, MoveStatus } from './interface';
 
 export default class GameEngine {
 
@@ -20,17 +20,17 @@ export default class GameEngine {
     }
 
     public static performMove(game: Game, move: Move): void {
-        if (GameEngine.verifyMove(move)) {
-            const source = move.source;
-            const target = move.target;
-            const cup = source.board? game.board[source.x][source.y] : GameEngine.removeCupFromPool(game.pool, move.cup);
-            game.moves.push(move);
-            if (GameEngine.isGameOver()) {
-                game.state = GameState.END;
-                game.winner = GameEngine.getWinner();
-            }
-        } else {
-            throw new Error(`Invalid move: ${JSON.stringify(move)}`);
+        const source = move.source;
+        const target = move.target;
+        GameEngine.verifyMove(game, move);
+        const cup = source.board? game.board[source.x][source.y] : GameEngine.removeCupFromPool(game.pool, move.cup);
+        if (source.board) {
+            const cup = game.board[source.x][source.y];
+        }
+        game.moves.push(move);
+        if (GameEngine.isGameOver()) {
+            game.state = GameState.END;
+            game.winner = GameEngine.getWinner();
         }
     }
     
@@ -50,8 +50,35 @@ export default class GameEngine {
         throw new Error('Method not implemented.');
     }
 
-    private static verifyMove(move: Move): boolean {
-        throw new Error('Method not implemented.');
+    /**
+     * Verifies if a move is valid based on the game state and configuration.
+     * Throws an error if the move is invalid.
+     * @param move - The move to be verified.
+     * @param game - The current game state.
+     * @throws Will throw an error if the move is invalid.
+     * @returns {void}
+     */
+    private static verifyMove(game: Game, move: Move): void {
+        const moveStatus = GameEngine.getMoveStatus(game, move);
+        if (!moveStatus.valid) {
+            throw new Error(`Invalid move: ${moveStatus.reason}`);
+        }
+    }
+
+    private static getMoveStatus(game: Game, move: Move): MoveStatus {
+        const {source, target, cup} = move;
+        if (source == null || target == null || cup == null) {
+            return {valid: false, reason: `Null value in move ${move}`};
+        }
+        if (source.equals(target)) {
+            return {valid: false, reason: 'Source and target locations are the same.'};
+        }
+        if (!target.board) {
+            return {valid: false, reason: 'You cannot put the cup back into the pool.'};
+        }
+        game.board[source.x][source.y].some((boardCup: Cup) => {boardCup.});
+        
+        return {valid: true, reason: null};
     }
     
     /**
@@ -85,4 +112,5 @@ export default class GameEngine {
         }
         return board;
     }
+
 }
