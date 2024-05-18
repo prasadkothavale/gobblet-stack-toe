@@ -8,6 +8,11 @@ export class Cup {
     player: Player;
     size: number;
 
+    constructor(player: Player, size: number) {
+        this.player = player;
+        this.size = size;
+    }
+
     equals(other: Cup): boolean {
         return this.player === other.player && this.size === other.size;
     }
@@ -39,6 +44,7 @@ export interface Game {
     state: GameState;
     winner: Player | null;
     config: GameConfig;
+    winningSequence: Location[] | null;
 }
 
 export enum GameState {
@@ -51,6 +57,7 @@ export interface GameConfig {
     cupSize: number;
     cupsPerSize: number;
     turn: Player;
+    winningSequenceSize: number;
 }
 
 export interface MoveStatus {

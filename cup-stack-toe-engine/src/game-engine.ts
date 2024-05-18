@@ -15,27 +15,24 @@ export default class GameEngine {
             turn: config.turn,
             state: GameState.LIVE,
             winner: null,
-            config
+            config,
+            winningSequence: null
         }
     }
 
-    public static performMove(game: Game, move: Move): void {
+    public static performMove(game: Game, move: Move): Cup[][][] {
         const source = move.source;
         const target = move.target;
         GameEngine.verifyMove(game, move);
-        const cup = source.board? game.board[source.x][source.y] : GameEngine.removeCupFromPool(game.pool, move.cup);
-        if (source.board) {
-            const cup = game.board[source.x][source.y];
-        }
+
+        const cupsAtSource: Cup[] = source.board ? game.board[source.x][source.y] : game.pool;
+        const cupsAtTarget: Cup[] = game.board[target.x][target.y];
+        const cupIndex: number = cupsAtSource.findIndex((sourceCup: Cup) => move.cup.equals(sourceCup));
+        cupsAtTarget.push(cupsAtSource.splice(cupIndex, 1)[0]);
         game.moves.push(move);
-        if (GameEngine.isGameOver()) {
-            game.state = GameState.END;
-            game.winner = GameEngine.getWinner();
-        }
-    }
-    
-    static removeCupFromPool(pool: Cup[], cup: Cup) {
-        throw new Error('Method not implemented.');
+        
+        GameEngine.checkEndGame(game);
+        return game.board;
     }
     
     private static getWinner(): Player {
@@ -46,8 +43,24 @@ export default class GameEngine {
      * Gets the winner of the game.
      * @returns The winner of the game.
      */
-    private static isGameOver(): boolean {
-        throw new Error('Method not implemented.');
+    private static checkEndGame(game: Game): boolean {
+        const isGameOver: boolean = false;
+        const winner: Player | null = null;
+        const board = game.board;
+        const boardSize = board.length;
+        const winningSequenceSize = game.config.winningSequenceSize;
+
+        // TODO: check rows
+
+        // TODO: check columns
+
+        // TODO: check diagonals
+
+        if (isGameOver) {
+            game.state = GameState.END;
+            game.winner = winner;
+        }
+        return isGameOver;
     }
 
     /**
@@ -59,13 +72,20 @@ export default class GameEngine {
      * @returns {void}
      */
     private static verifyMove(game: Game, move: Move): void {
-        const moveStatus = GameEngine.getMoveStatus(game, move);
+        const moveStatus = GameEngine.runGameRules(game, move);
         if (!moveStatus.valid) {
             throw new Error(`Invalid move: ${moveStatus.reason}`);
         }
     }
 
-    private static getMoveStatus(game: Game, move: Move): MoveStatus {
+    /**
+     * Runs the game rules to check if a move is valid.
+     * @param game - The current game state.
+     * @param move - The move to be verified.
+     * @returns A MoveStatus object indicating if the move is valid and the reason in case of invalid move.
+     */
+    private static runGameRules(game: Game, move: Move): MoveStatus {
+        
         const {source, target, cup} = move;
         if (source == null || target == null || cup == null) {
             return {valid: false, reason: `Null value in move ${move}`};
@@ -76,8 +96,24 @@ export default class GameEngine {
         if (!target.board) {
             return {valid: false, reason: 'You cannot put the cup back into the pool.'};
         }
-        game.board[source.x][source.y].some((boardCup: Cup) => {boardCup.});
+        if (cup.player !== game.turn) {
+            return {valid: false, reason: 'The cup does not belong to the current player.'};
+        }
+
+        const cupsAtSource: Cup[] = source.board ? game.board[source.x][source.y] : game.pool;
+        const cupsAtTarget: Cup[] = game.board[target.x][target.y];
+        if (cupsAtSource.some((sourceCup: Cup) => cup.size <= sourceCup.size)) {
+            return {valid: false, reason: 'You cannot move the captured cup'};
+        }
+        if (cupsAtTarget.some((targetCup: Cup) => cup.size <= targetCup.size)) {
+            return {valid: false, reason: 'You can only capture the cup by the larger cup.'};
+        }
         
+        const cupIndex: number = cupsAtSource.findIndex((sourceCup: Cup) => cup.equals(sourceCup));
+        if (cupIndex === -1) {
+            return {valid: false, reason: 'The cup is not at the provided location.'};
+        } 
+
         return {valid: true, reason: null};
     }
     
@@ -90,7 +126,7 @@ export default class GameEngine {
         config.players.forEach(player => {
             for (let size = 0; size < config.cupSize; size++) {
                 for (let j = 0; j < config.cupsPerSize; j++) { 
-                    pool.push({player, size});
+                    pool.push(new Cup(player, size));
                 }
             }
         });
@@ -111,6 +147,15 @@ export default class GameEngine {
             }
         }
         return board;
+    }
+
+    /**
+     * Gets the largest cup from the given cups array.
+     * @param cups - An array of cups.
+     * @returns The cup with the largest size.
+     */
+    private static getLargestCup(cups: Cup[]): Cup {
+        return cups.sort((a, b) => b.size - a.size)[0];
     }
 
 }
