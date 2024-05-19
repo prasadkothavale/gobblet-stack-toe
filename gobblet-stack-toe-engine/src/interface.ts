@@ -54,7 +54,7 @@ export interface Game {
 }
 
 export enum GameState {
-    LIVE, END
+    LIVE, DRAW, DOUBLE_DRAW, END
 }
 
 export interface GameConfig {
@@ -63,7 +63,6 @@ export interface GameConfig {
     gobbletSize: number;
     gobbletsPerSize: number;
     turn: Player;
-    winningSequenceSize: number;
 }
 
 export interface MoveStatus {

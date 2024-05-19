@@ -37,7 +37,7 @@ export default class GameEngine {
         gobbletsAtTarget.push(gobbletsAtSource.splice(gobbletIndex, 1)[0]);
         game.moves.push(move);
         
-        const endGameState: EndGameState = GameEngine.checkEndGame(game.board, game.config.winningSequenceSize);
+        const endGameState: EndGameState = GameEngine.checkEndGame(game.board);
         if(endGameState.isEndGame) {
             game.winner = endGameState.winner;
             game.winningSequence = endGameState.winningSequence;
@@ -46,38 +46,50 @@ export default class GameEngine {
         return game.board;
     }
 
-    public static checkEndGame(board: Gobblet[][][], winningSequenceSize: number): EndGameState {
+    public static checkEndGame(board: Gobblet[][][]): EndGameState {
         const boardSize: number = board.length;
-        const endGameState: EndGameState = {
-            winner: null,
-            winningSequence: [],
-            isEndGame: false
-        }
+        const playerSequences: {player: Player, sequence: Location[]}[] = [];
 
-        // TODO: check rows
+        // check rows
         board.forEach((row: Gobblet[][], x) => {
             let sequence: Location[] | null = null;
             let sequencePlayer: Player | null = null;
-            row.forEach((cell: Gobblet[], y) => {
-                const gobblet: Gobblet = this.getLargestGobblet(cell);
-                if (sequencePlayer && sequencePlayer.id === gobblet.player.id) {
-                
-                } else {
-                    sequencePlayer = gobblet.player;
-                    sequence = [new Location(true, x, y)];
-                }
-
-                if (sequence.length === winningSequenceSize) {
-
-                }
-            });
+            row.forEach((cell: Gobblet[], y) => 
+                GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, boardSize, playerSequences)
+            );
         });
 
-        // TODO: check columns
+        // check columns
+        for (let y = 0; y < boardSize; y++) {
+            let sequence: Location[] | null = null;
+            let sequencePlayer: Player | null = null;
+            for (let x = 0; x < boardSize; x++) {
+                const cell: Gobblet[] = board[x][y];
+                GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, boardSize, playerSequences)
+            }
+        }
 
-        // TODO: check diagonals
+        // check diagonals
+        for (let i = 0; i < boardSize; i++) {
+            let sequence: Location[] | null = null;
+            let sequencePlayer: Player | null = null;
+            const cell: Gobblet[] = board[i][i];
+                GameEngine.checkCell(cell, sequencePlayer, sequence, i, i, boardSize, playerSequences)
+        }
+        for (let i = 0; i < boardSize; i++) {
+            let sequence: Location[] | null = null;
+            let sequencePlayer: Player | null = null;
+            const cell: Gobblet[] = board[i][boardSize - i - 1];
+                GameEngine.checkCell(cell, sequencePlayer, sequence, i, boardSize - i - 1, boardSize, playerSequences)
+        }
 
-        return endGameState;
+        if (playerSequences.length === 1) {
+            return {
+                winner: playerSequences[0].player,
+                winningSequence: playerSequences[0].sequence,
+                isEndGame: true
+            }
+        }
     }
 
     /**
@@ -132,6 +144,34 @@ export default class GameEngine {
         } 
 
         return {valid: true, reason: null};
+    }
+
+    /**
+     * Verifies if a cell contains the largest gobblet belonging to the current player.
+     * If a sequence of the player's gobblets is found, it is added to the list of player sequences,
+     * else a new sequence is started.
+     * @param cell - The cell to be checked.
+     * @param sequencePlayer - The player whose sequence is being checked.
+     * @param sequence - The sequence of gobblets found so far.
+     * @param x - The x-coordinate of the cell.
+     * @param y - The y-coordinate of the cell.
+     * @param boardSize - The size of the game board.
+     * @param playerSequences - The list of player sequences found so far.
+     */
+    private static checkCell(
+            cell: Gobblet[], sequencePlayer: Player, sequence: Location[], x: number, y: number, 
+            boardSize: number, playerSequences: {player: Player, sequence: Location[]}[]
+    ): void {
+        const gobblet: Gobblet = this.getLargestGobblet(cell);
+        if (sequencePlayer && sequencePlayer.id === gobblet.player.id) {
+            sequence.push(new Location(true, x, y));
+        } else {
+            sequencePlayer = gobblet.player;
+            sequence = [new Location(true, x, y)];
+        }
+        if (sequence.length === boardSize) {
+            playerSequences.push({player: sequencePlayer, sequence});
+        }
     }
     
     /**
