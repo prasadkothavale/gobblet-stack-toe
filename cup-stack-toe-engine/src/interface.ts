@@ -23,6 +23,12 @@ export class Location {
     board: boolean;
     x: number;
     y: number;
+
+    constructor(board: boolean, x: number, y: number) {
+        this.board = board;
+        this.x = x;
+        this.y = y;
+    }
     
     equals(other: Location): boolean {
         return this.board === other.board && this.x === other.x && this.y === other.y;
@@ -63,4 +69,10 @@ export interface GameConfig {
 export interface MoveStatus {
     valid: boolean;
     reason: string;
+}
+
+export interface EndGameState {
+    winner: Player | null;
+    winningSequence: Location[] | null;
+    isEndGame: boolean;
 }

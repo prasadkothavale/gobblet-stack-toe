@@ -1,4 +1,4 @@
-import { Move, Cup, Player, Game, GameState, GameConfig, Location, MoveStatus } from './interface';
+import { Move, Cup, Player, Game, GameState, GameConfig, Location, MoveStatus, EndGameState } from './interface';
 
 export default class GameEngine {
 
@@ -20,6 +20,12 @@ export default class GameEngine {
         }
     }
 
+    /**
+     * Performs a move in the game.
+     * @param game - The current game state.
+     * @param move - The move to be performed.
+     * @returns The updated game board after the move is performed.
+     */
     public static performMove(game: Game, move: Move): Cup[][][] {
         const source = move.source;
         const target = move.target;
@@ -31,36 +37,47 @@ export default class GameEngine {
         cupsAtTarget.push(cupsAtSource.splice(cupIndex, 1)[0]);
         game.moves.push(move);
         
-        GameEngine.checkEndGame(game);
+        const endGameState: EndGameState = GameEngine.checkEndGame(game.board, game.config.winningSequenceSize);
+        if(endGameState.isEndGame) {
+            game.winner = endGameState.winner;
+            game.winningSequence = endGameState.winningSequence;
+            game.state = GameState.END;
+        }
         return game.board;
     }
-    
-    private static getWinner(): Player {
-        throw new Error('Method not implemented.');
-    }
 
-    /**
-     * Gets the winner of the game.
-     * @returns The winner of the game.
-     */
-    private static checkEndGame(game: Game): boolean {
-        const isGameOver: boolean = false;
-        const winner: Player | null = null;
-        const board = game.board;
-        const boardSize = board.length;
-        const winningSequenceSize = game.config.winningSequenceSize;
+    public static checkEndGame(board: Cup[][][], winningSequenceSize: number): EndGameState {
+        const boardSize: number = board.length;
+        const endGameState: EndGameState = {
+            winner: null,
+            winningSequence: [],
+            isEndGame: false
+        }
 
         // TODO: check rows
+        board.forEach((row: Cup[][], x) => {
+            let sequence: Location[] | null = null;
+            let sequencePlayer: Player | null = null;
+            row.forEach((cell: Cup[], y) => {
+                const cup: Cup = this.getLargestCup(cell);
+                if (sequencePlayer && sequencePlayer.id === cup.player.id) {
+                
+                } else {
+                    sequencePlayer = cup.player;
+                    sequence = [new Location(true, x, y)];
+                }
+
+                if (sequence.length === winningSequenceSize) {
+                    
+                }
+            });
+        });
 
         // TODO: check columns
 
         // TODO: check diagonals
 
-        if (isGameOver) {
-            game.state = GameState.END;
-            game.winner = winner;
-        }
-        return isGameOver;
+        return endGameState;
     }
 
     /**
