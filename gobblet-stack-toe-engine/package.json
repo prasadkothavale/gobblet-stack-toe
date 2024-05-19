@@ -1,7 +1,7 @@
 {
-  "name": "cup-stack-toe-engine",
+  "name": "gobblet-stack-toe-engine",
   "version": "1.0.0",
-  "description": "cup-stack-toe game engine containing core logic and rules for the game",
+  "description": "gobblet-stack-toe game engine containing core logic and rules for the game",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -13,18 +13,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prasadkothavale/cup-stack-toe.git"
+    "url": "git+https://github.com/prasadkothavale/gobblet-stack-toe.git"
   },
   "keywords": [
-    "cup-stack-toe",
+    "gobblet-stack-toe",
     "game-engine"
   ],
   "author": "prasadkothavale@yahoo.co.in",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/prasadkothavale/cup-stack-toe/issues"
+    "url": "https://github.com/prasadkothavale/gobblet-stack-toe/issues"
   },
-  "homepage": "https://github.com/prasadkothavale/cup-stack-toe#readme",
+  "homepage": "https://github.com/prasadkothavale/gobblet-stack-toe#readme",
   "devDependencies": {
     "@babel/preset-env": "^7.24.5",
     "@babel/preset-typescript": "^7.24.1",

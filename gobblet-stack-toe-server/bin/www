@@ -5,7 +5,7 @@
  */
 
 var app = require('../app');
-var debug = require('debug')('cup-stack-toe-server:server');
+var debug = require('debug')('gobblet-stack-toe-server:server');
 var http = require('http');
 
 /**

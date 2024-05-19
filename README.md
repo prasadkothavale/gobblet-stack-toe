@@ -1,2 +1,2 @@
-# cup-stack-toe
-A repository for cup-stack-toe game, UI, analysis and bots
+# gobblet-stack-toe
+A repository for gobblet-stack-toe game, UI, analysis and bots

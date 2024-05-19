@@ -1,6 +1,6 @@
 {
-    "name": "cup-stack-toe",
+    "name": "gobblet-stack-toe",
     "version": "1.0.0",
-    "description": "Cup stack toe npm workspaces",
-    "workspaces": ["cup-stack-toe-desktop","cup-stack-toe-engine","cup-stack-toe-server", "cup-stack-toe-ui"]
+    "description": "gobblet-stack-toe npm workspaces",
+    "workspaces": ["gobblet-stack-toe-desktop","gobblet-stack-toe-engine","gobblet-stack-toe-server", "gobblet-stack-toe-ui"]
 }

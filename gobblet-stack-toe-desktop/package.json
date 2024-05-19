@@ -1,7 +1,7 @@
 {
-  "name": "cup-stack-toe-desktop",
+  "name": "gobblet-stack-toe-desktop",
   "version": "1.0.0",
-  "description": "Cup stack toe desktop app",
+  "description": "gobblet-stack-toe desktop app",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -9,20 +9,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/prasadkothavale/cup-stack-toe.git"
+    "url": "https://github.com/prasadkothavale/gobblet-stack-toe.git"
   },
   "keywords": [
     "electron",
-    "cup-stack-toe",
+    "gobblet-stack-toe",
     "desktop",
     "javascript"
   ],
   "author": "prasadkothavale@yahoo.co.in",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/prasadkothavale/cup-stack-toe/issues"
+    "url": "https://github.com/prasadkothavale/gobblet-stack-toe/issues"
   },
-  "homepage": "https://github.com/prasadkothavale/cup-stack-toe#readme",
+  "homepage": "https://github.com/prasadkothavale/gobblet-stack-toe#readme",
   "devDependencies": {
     "electron": "^30.0.2"
   }

@@ -4,7 +4,7 @@ export interface Player {
     color: string
 }
 
-export class Cup {
+export class Gobblet {
     player: Player;
     size: number;
 
@@ -13,7 +13,7 @@ export class Cup {
         this.size = size;
     }
 
-    equals(other: Cup): boolean {
+    equals(other: Gobblet): boolean {
         return this.player === other.player && this.size === other.size;
     }
 }
@@ -37,15 +37,15 @@ export class Location {
 }
 
 export interface Move {
-    cup: Cup;
+    gobblet: Gobblet;
     source: Location;
     target: Location;
 }
 
 export interface Game {
     moves: Move[];
-    board: Cup[][][];
-    pool: Cup[];
+    board: Gobblet[][][];
+    pool: Gobblet[];
     turn: Player;
     state: GameState;
     winner: Player | null;
@@ -60,8 +60,8 @@ export enum GameState {
 export interface GameConfig {
     players: Player[];
     boardSize: number;
-    cupSize: number;
-    cupsPerSize: number;
+    gobbletSize: number;
+    gobbletsPerSize: number;
     turn: Player;
     winningSequenceSize: number;
 }
