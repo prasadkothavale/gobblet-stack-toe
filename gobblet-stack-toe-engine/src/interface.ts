@@ -57,7 +57,6 @@ export interface GameConfig {
     boardSize: number;
     gobbletSize: number;
     gobbletsPerSize: number;
-    turn: Player;
 }
 
 export interface MoveStatus {

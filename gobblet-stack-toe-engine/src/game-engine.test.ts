@@ -7,8 +7,7 @@ describe('Game', () => {
         const gameConfig: GameConfig = {
             boardSize: 3,
             gobbletSize: 3,
-            gobbletsPerSize: 2,
-            turn: Player.WHITE,
+            gobbletsPerSize: 2
         }
         const game = GameEngine.createGame(gameConfig);
 

@@ -12,7 +12,7 @@ export default class GameEngine {
             moves: [],
             board: GameEngine.getInitialBoard(config),
             pool: GameEngine.getInitialPool(config),
-            turn: config.turn,
+            turn: Player.WHITE,
             state: {
                 winner: null,
                 sequences: [],
