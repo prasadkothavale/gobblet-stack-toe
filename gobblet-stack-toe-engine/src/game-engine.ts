@@ -1,4 +1,5 @@
 import { Move, Gobblet, Player, Game, GameStatus, GameConfig, Location, MoveStatus, GameState, PlayerSequence } from './interface';
+import SizedStack from './sized-stack';
 
 export default class GameEngine {
 
@@ -11,7 +12,7 @@ export default class GameEngine {
         return {
             moves: [],
             board: GameEngine.getInitialBoard(config),
-            pool: GameEngine.getInitialPool(config),
+            externalStack: GameEngine.getInitialExternalStack(config),
             turn: Player.WHITE,
             state: {
                 winner: null,
@@ -33,10 +34,13 @@ export default class GameEngine {
         const target = move.target;
         GameEngine.verifyMove(game, move);
 
-        const gobbletsAtSource: Gobblet[] = source.board ? game.board[source.x][source.y] : game.pool;
+        const gobbletsAtSource: Gobblet[] = source.board ? game.board[source.x][source.y] : game.externalStack;
         const gobbletsAtTarget: Gobblet[] = game.board[target.x][target.y];
         const gobbletIndex: number = gobbletsAtSource.findIndex((sourceGobblet: Gobblet) => move.gobblet.equals(sourceGobblet));
         gobbletsAtTarget.push(gobbletsAtSource.splice(gobbletIndex, 1)[0]);
+
+        const sourceStack: SizedStack<Gobblet> = source.board ? game.board[source.x][source.y] : game.externalStack;
+        const targetStack: SizedStack<Gobblet> = game.board[target.x][target.y];
         game.moves.push(move);
         game.state = GameEngine.getGameState(game.board);
         game.turn = game.turn === Player.WHITE? Player.BLACK : Player.WHITE;
@@ -62,6 +66,13 @@ export default class GameEngine {
         }
     }
 
+    /**
+     * Finds sequences gobblets formed by players on the board.
+     * @param board - The current game board.
+     * @param boardSize - The size of the game board.
+     * @param sequenceSize - The size of the sequence expected.
+     * @returns sequences gobblets formed by players on the board.
+     */
     private static checkSequence(board: Gobblet[][][], boardSize: number, sequenceSize: number): PlayerSequence[] {
         const playerSequences: PlayerSequence[] = [];
 
@@ -101,7 +112,7 @@ export default class GameEngine {
     }
 
     /**
-     * Verifies if a move is valid based on the game state and configuration.
+     * Verifies if a move is valid based on the game state.
      * Throws an error if the move is invalid.
      * @param move - The move to be verified.
      * @param game - The current game state.
@@ -131,13 +142,13 @@ export default class GameEngine {
             return {valid: false, reason: 'Source and target locations are the same.'};
         }
         if (!target.board) {
-            return {valid: false, reason: 'You cannot put the gobblet back into the pool.'};
+            return {valid: false, reason: 'You cannot remove gobblet from the board.'};
         }
         if (gobblet.player !== game.turn) {
             return {valid: false, reason: 'The gobblet does not belong to the current player.'};
         }
 
-        const gobbletsAtSource: Gobblet[] = source.board ? game.board[source.x][source.y] : game.pool;
+        const gobbletsAtSource: Gobblet[] = source.board ? game.board[source.x][source.y] : game.externalStack;
         const gobbletsAtTarget: Gobblet[] = game.board[target.x][target.y];
         if (gobbletsAtSource.some((sourceGobblet: Gobblet) => gobblet.size <= sourceGobblet.size)) {
             return {valid: false, reason: 'You cannot move the captured gobblet'};
@@ -183,19 +194,19 @@ export default class GameEngine {
     }
     
     /**
-     * Initializes the game pool with the specified configuration.
+     * Initializes the game external stack with the specified configuration.
      * @param config The configuration object containing the players, gobblet size, and gobblets per size.
      */
-    private static getInitialPool(config: GameConfig): Gobblet[] {
-        const pool: Gobblet[] = [];
-        [Player.WHITE, Player.BLACK].forEach(player => {
-            for (let size = 0; size < config.gobbletSize; size++) {
-                for (let j = 0; j < config.gobbletsPerSize; j++) { 
-                    pool.push(new Gobblet(player, size));
-                }
+    private static getInitialExternalStack(config: GameConfig): SizedStack<Gobblet>[] {
+        const externalStack: SizedStack<Gobblet>[] = [];
+        [Player.WHITE, Player.BLACK].forEach((player: Player) => {
+            const stack: SizedStack<Gobblet> = new SizedStack<Gobblet>();
+            for (let size = 0; size < config.gobbletsPerSize; size++) {
+                stack.push(new Gobblet(player, config.gobbletSize));
             }
+            externalStack.push(stack);
         });
-        return pool;
+        return externalStack;
     }
 
 
@@ -203,12 +214,12 @@ export default class GameEngine {
      * Initializes the game board with the specified configuration.
      * @param config The configuration object containing the board size and gobblet size.
      */
-    private static getInitialBoard(config: GameConfig): Gobblet[][][] {
-        const board: Gobblet[][][] = [];
-        for (let i = 0; i < config.boardSize; i++) {
+    private static getInitialBoard(config: GameConfig): SizedStack<Gobblet>[][] {
+        const board: SizedStack<Gobblet>[][] = [];
+        for (let x = 0; x < config.boardSize; x++) {
             board.push([]);
-            for (let j = 0; j < config.boardSize; j++) {
-                board[i].push([]);
+            for (let y = 0; y < config.boardSize; y++) {
+                board[x].push(new SizedStack<Gobblet>());
             }
         }
         return board;

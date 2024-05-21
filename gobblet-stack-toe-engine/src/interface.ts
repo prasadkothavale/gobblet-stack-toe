@@ -1,8 +1,10 @@
+import SizedStack, {Sized} from './sized-stack';
+
 export enum Player {
     WHITE, BLACK
 }
 
-export class Gobblet {
+export class Gobblet implements Sized {
     player: Player;
     size: number;
 
@@ -42,8 +44,8 @@ export interface Move {
 
 export interface Game {
     moves: Move[];
-    board: Gobblet[][][];
-    pool: Gobblet[];
+    board: SizedStack<Gobblet>[][];
+    externalStack: SizedStack<Gobblet>[];
     turn: Player;
     state: GameState;
     config: GameConfig;
