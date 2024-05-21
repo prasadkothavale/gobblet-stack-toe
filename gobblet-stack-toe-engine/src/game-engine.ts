@@ -1,4 +1,4 @@
-import { Move, Gobblet, Player, Game, GameState, GameConfig, Location, MoveStatus, EndGameState } from './interface';
+import { Move, Gobblet, Player, Game, GameStatus, GameConfig, Location, MoveStatus, GameState, PlayerSequence } from './interface';
 
 export default class GameEngine {
 
@@ -13,10 +13,12 @@ export default class GameEngine {
             board: GameEngine.getInitialBoard(config),
             pool: GameEngine.getInitialPool(config),
             turn: config.turn,
-            state: GameState.LIVE,
-            winner: null,
-            config,
-            winningSequence: null
+            state: {
+                winner: null,
+                sequences: [],
+                status: GameStatus.LIVE
+            },
+            config
         }
     }
 
@@ -36,26 +38,38 @@ export default class GameEngine {
         const gobbletIndex: number = gobbletsAtSource.findIndex((sourceGobblet: Gobblet) => move.gobblet.equals(sourceGobblet));
         gobbletsAtTarget.push(gobbletsAtSource.splice(gobbletIndex, 1)[0]);
         game.moves.push(move);
-        
-        const endGameState: EndGameState = GameEngine.checkEndGame(game.board);
-        if(endGameState.isEndGame) {
-            game.winner = endGameState.winner;
-            game.winningSequence = endGameState.winningSequence;
-            game.state = GameState.END;
-        }
+        game.state = GameEngine.getGameState(game.board);
+        game.turn = game.turn === Player.WHITE? Player.BLACK : Player.WHITE;
+
         return game.board;
     }
 
-    public static checkEndGame(board: Gobblet[][][]): EndGameState {
+    /**
+     * Checks if the game has ended due to a player forming a sequence of their gobblets.
+     * @param board - The current game board.
+     * @returns An object containing the winner, the winning sequence, and a boolean indicating if the game has ended.
+     */
+    public static getGameState(board: Gobblet[][][]): GameState {
         const boardSize: number = board.length;
-        const playerSequences: {player: Player, sequence: Location[]}[] = [];
+        const playerSequences: PlayerSequence[] = GameEngine.checkSequence(board, boardSize, boardSize);
+
+        if (playerSequences.length === 1) {
+            return {
+                winner: playerSequences[0].player,
+                sequences: [playerSequences[0].sequence],
+                status: GameStatus.END
+            }
+        }
+    }
+
+    private static checkSequence(board: Gobblet[][][], boardSize: number, sequenceSize: number): PlayerSequence[] {
+        const playerSequences: PlayerSequence[] = [];
 
         // check rows
         board.forEach((row: Gobblet[][], x) => {
             let sequence: Location[] | null = null;
             let sequencePlayer: Player | null = null;
-            row.forEach((cell: Gobblet[], y) => 
-                GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, boardSize, playerSequences)
+            row.forEach((cell: Gobblet[], y) => GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences)
             );
         });
 
@@ -65,7 +79,7 @@ export default class GameEngine {
             let sequencePlayer: Player | null = null;
             for (let x = 0; x < boardSize; x++) {
                 const cell: Gobblet[] = board[x][y];
-                GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, boardSize, playerSequences)
+                GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences);
             }
         }
 
@@ -74,22 +88,16 @@ export default class GameEngine {
             let sequence: Location[] | null = null;
             let sequencePlayer: Player | null = null;
             const cell: Gobblet[] = board[i][i];
-                GameEngine.checkCell(cell, sequencePlayer, sequence, i, i, boardSize, playerSequences)
+            GameEngine.checkCell(cell, sequencePlayer, sequence, i, i, sequenceSize, playerSequences);
         }
         for (let i = 0; i < boardSize; i++) {
             let sequence: Location[] | null = null;
             let sequencePlayer: Player | null = null;
             const cell: Gobblet[] = board[i][boardSize - i - 1];
-                GameEngine.checkCell(cell, sequencePlayer, sequence, i, boardSize - i - 1, boardSize, playerSequences)
+            GameEngine.checkCell(cell, sequencePlayer, sequence, i, boardSize - i - 1, sequenceSize, playerSequences);
         }
 
-        if (playerSequences.length === 1) {
-            return {
-                winner: playerSequences[0].player,
-                winningSequence: playerSequences[0].sequence,
-                isEndGame: true
-            }
-        }
+        return playerSequences;
     }
 
     /**
@@ -155,21 +163,21 @@ export default class GameEngine {
      * @param sequence - The sequence of gobblets found so far.
      * @param x - The x-coordinate of the cell.
      * @param y - The y-coordinate of the cell.
-     * @param boardSize - The size of the game board.
+     * @param sequenceSize - The size of the sequence expected.
      * @param playerSequences - The list of player sequences found so far.
      */
     private static checkCell(
             cell: Gobblet[], sequencePlayer: Player, sequence: Location[], x: number, y: number, 
-            boardSize: number, playerSequences: {player: Player, sequence: Location[]}[]
+            sequenceSize: number, playerSequences: PlayerSequence[]
     ): void {
         const gobblet: Gobblet = this.getLargestGobblet(cell);
-        if (sequencePlayer && sequencePlayer.id === gobblet.player.id) {
+        if (sequencePlayer && sequencePlayer === gobblet.player) {
             sequence.push(new Location(true, x, y));
         } else {
             sequencePlayer = gobblet.player;
             sequence = [new Location(true, x, y)];
         }
-        if (sequence.length === boardSize) {
+        if (sequence.length === sequenceSize) {
             playerSequences.push({player: sequencePlayer, sequence});
         }
     }
@@ -180,7 +188,7 @@ export default class GameEngine {
      */
     private static getInitialPool(config: GameConfig): Gobblet[] {
         const pool: Gobblet[] = [];
-        config.players.forEach(player => {
+        [Player.WHITE, Player.BLACK].forEach(player => {
             for (let size = 0; size < config.gobbletSize; size++) {
                 for (let j = 0; j < config.gobbletsPerSize; j++) { 
                     pool.push(new Gobblet(player, size));

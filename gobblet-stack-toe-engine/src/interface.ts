@@ -1,7 +1,5 @@
-export interface Player {
-    id: number,
-    name: string,
-    color: string
+export enum Player {
+    WHITE, BLACK
 }
 
 export class Gobblet {
@@ -48,17 +46,14 @@ export interface Game {
     pool: Gobblet[];
     turn: Player;
     state: GameState;
-    winner: Player | null;
     config: GameConfig;
-    winningSequence: Location[] | null;
 }
 
-export enum GameState {
+export enum GameStatus {
     LIVE, DRAW, DOUBLE_DRAW, END
 }
 
 export interface GameConfig {
-    players: Player[];
     boardSize: number;
     gobbletSize: number;
     gobbletsPerSize: number;
@@ -70,8 +65,13 @@ export interface MoveStatus {
     reason: string;
 }
 
-export interface EndGameState {
+export interface GameState {
     winner: Player | null;
-    winningSequence: Location[] | null;
-    isEndGame: boolean;
+    sequences: Location[][] | [];
+    status: GameStatus;
+}
+
+export interface PlayerSequence {
+    player: Player, 
+    sequence: Location[]
 }
