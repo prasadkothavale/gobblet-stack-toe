@@ -11,6 +11,6 @@ describe('Game', () => {
         }
         const game = GameEngine.createGame(gameConfig);
 
-        console.log(game);
+        console.log(JSON.stringify(game, null, 2));
     });
 });

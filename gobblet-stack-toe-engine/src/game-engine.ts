@@ -29,18 +29,14 @@ export default class GameEngine {
      * @param move - The move to be performed.
      * @returns The updated game board after the move is performed.
      */
-    public static performMove(game: Game, move: Move): Gobblet[][][] {
+    public static performMove(game: Game, move: Move): SizedStack<Gobblet>[][] {
         const source = move.source;
         const target = move.target;
         GameEngine.verifyMove(game, move);
 
-        const gobbletsAtSource: Gobblet[] = source.board ? game.board[source.x][source.y] : game.externalStack;
-        const gobbletsAtTarget: Gobblet[] = game.board[target.x][target.y];
-        const gobbletIndex: number = gobbletsAtSource.findIndex((sourceGobblet: Gobblet) => move.gobblet.equals(sourceGobblet));
-        gobbletsAtTarget.push(gobbletsAtSource.splice(gobbletIndex, 1)[0]);
-
-        const sourceStack: SizedStack<Gobblet> = source.board ? game.board[source.x][source.y] : game.externalStack;
+        const sourceStack: SizedStack<Gobblet> = source.board ? game.board[source.x][source.y] : game.externalStack[source.x];
         const targetStack: SizedStack<Gobblet> = game.board[target.x][target.y];
+        targetStack.push(sourceStack.pop());
         game.moves.push(move);
         game.state = GameEngine.getGameState(game.board);
         game.turn = game.turn === Player.WHITE? Player.BLACK : Player.WHITE;
@@ -53,7 +49,7 @@ export default class GameEngine {
      * @param board - The current game board.
      * @returns An object containing the winner, the winning sequence, and a boolean indicating if the game has ended.
      */
-    public static getGameState(board: Gobblet[][][]): GameState {
+    public static getGameState(board: SizedStack<Gobblet>[][]): GameState {
         const boardSize: number = board.length;
         const playerSequences: PlayerSequence[] = GameEngine.checkSequence(board, boardSize, boardSize);
 
@@ -73,15 +69,14 @@ export default class GameEngine {
      * @param sequenceSize - The size of the sequence expected.
      * @returns sequences gobblets formed by players on the board.
      */
-    private static checkSequence(board: Gobblet[][][], boardSize: number, sequenceSize: number): PlayerSequence[] {
+    private static checkSequence(board: SizedStack<Gobblet>[][], boardSize: number, sequenceSize: number): PlayerSequence[] {
         const playerSequences: PlayerSequence[] = [];
 
         // check rows
-        board.forEach((row: Gobblet[][], x) => {
+        board.forEach((row: SizedStack<Gobblet>[], x) => {
             let sequence: Location[] | null = null;
             let sequencePlayer: Player | null = null;
-            row.forEach((cell: Gobblet[], y) => GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences)
-            );
+            row.forEach((cell: SizedStack<Gobblet>, y) => GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences));
         });
 
         // check columns
@@ -89,7 +84,7 @@ export default class GameEngine {
             let sequence: Location[] | null = null;
             let sequencePlayer: Player | null = null;
             for (let x = 0; x < boardSize; x++) {
-                const cell: Gobblet[] = board[x][y];
+                const cell: SizedStack<Gobblet> = board[x][y];
                 GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences);
             }
         }
@@ -98,13 +93,13 @@ export default class GameEngine {
         for (let i = 0; i < boardSize; i++) {
             let sequence: Location[] | null = null;
             let sequencePlayer: Player | null = null;
-            const cell: Gobblet[] = board[i][i];
+            const cell: SizedStack<Gobblet> = board[i][i];
             GameEngine.checkCell(cell, sequencePlayer, sequence, i, i, sequenceSize, playerSequences);
         }
         for (let i = 0; i < boardSize; i++) {
             let sequence: Location[] | null = null;
             let sequencePlayer: Player | null = null;
-            const cell: Gobblet[] = board[i][boardSize - i - 1];
+            const cell: SizedStack<Gobblet> = board[i][boardSize - i - 1];
             GameEngine.checkCell(cell, sequencePlayer, sequence, i, boardSize - i - 1, sequenceSize, playerSequences);
         }
 
@@ -134,9 +129,12 @@ export default class GameEngine {
      */
     private static runGameRules(game: Game, move: Move): MoveStatus {
         
-        const {source, target, gobblet} = move;
-        if (source == null || target == null || gobblet == null) {
-            return {valid: false, reason: `Null value in move ${move}`};
+        const {source, target} = move;
+        if (source === null) {
+            return {valid: false, reason: 'Source location is null.'};
+        }
+        if (target === null) {
+            return {valid: false, reason: 'Target location is null.'};
         }
         if (source.equals(target)) {
             return {valid: false, reason: 'Source and target locations are the same.'};
@@ -144,23 +142,20 @@ export default class GameEngine {
         if (!target.board) {
             return {valid: false, reason: 'You cannot remove gobblet from the board.'};
         }
+
+        const gobblet: Gobblet = game.board[source.x][source.y].peek();
         if (gobblet.player !== game.turn) {
             return {valid: false, reason: 'The gobblet does not belong to the current player.'};
         }
 
-        const gobbletsAtSource: Gobblet[] = source.board ? game.board[source.x][source.y] : game.externalStack;
-        const gobbletsAtTarget: Gobblet[] = game.board[target.x][target.y];
-        if (gobbletsAtSource.some((sourceGobblet: Gobblet) => gobblet.size <= sourceGobblet.size)) {
-            return {valid: false, reason: 'You cannot move the captured gobblet'};
+        const sourceStack: SizedStack<Gobblet> = source.board ? game.board[source.x][source.y] : game.externalStack[source.x];
+        const targetStack: SizedStack<Gobblet> = game.board[target.x][target.y];
+        if (sourceStack.isEmpty()) {
+            return {valid: false, reason: 'The source location is empty.'};
         }
-        if (gobbletsAtTarget.some((targetGobblet: Gobblet) => gobblet.size <= targetGobblet.size)) {
+        if (!targetStack.canPush(gobblet)) {
             return {valid: false, reason: 'You can only capture the gobblet by the larger gobblet.'};
         }
-        
-        const gobbletIndex: number = gobbletsAtSource.findIndex((sourceGobblet: Gobblet) => gobblet.equals(sourceGobblet));
-        if (gobbletIndex === -1) {
-            return {valid: false, reason: 'The gobblet is not at the provided location.'};
-        } 
 
         return {valid: true, reason: null};
     }
@@ -178,10 +173,10 @@ export default class GameEngine {
      * @param playerSequences - The list of player sequences found so far.
      */
     private static checkCell(
-            cell: Gobblet[], sequencePlayer: Player, sequence: Location[], x: number, y: number, 
+            cell: SizedStack<Gobblet>, sequencePlayer: Player, sequence: Location[], x: number, y: number, 
             sequenceSize: number, playerSequences: PlayerSequence[]
     ): void {
-        const gobblet: Gobblet = this.getLargestGobblet(cell);
+        const gobblet: Gobblet = cell.peek();
         if (sequencePlayer && sequencePlayer === gobblet.player) {
             sequence.push(new Location(true, x, y));
         } else {
@@ -200,11 +195,13 @@ export default class GameEngine {
     private static getInitialExternalStack(config: GameConfig): SizedStack<Gobblet>[] {
         const externalStack: SizedStack<Gobblet>[] = [];
         [Player.WHITE, Player.BLACK].forEach((player: Player) => {
-            const stack: SizedStack<Gobblet> = new SizedStack<Gobblet>();
-            for (let size = 0; size < config.gobbletsPerSize; size++) {
-                stack.push(new Gobblet(player, config.gobbletSize));
+            for (let stackIndex = 0; stackIndex < config.gobbletsPerSize; stackIndex++) {
+                const stack: SizedStack<Gobblet> = new SizedStack<Gobblet>();
+                for (let size = 0; size < config.gobbletSize; size++) {
+                    stack.push(new Gobblet(player, size));
+                }
+                externalStack.push(stack);
             }
-            externalStack.push(stack);
         });
         return externalStack;
     }
@@ -223,15 +220,6 @@ export default class GameEngine {
             }
         }
         return board;
-    }
-
-    /**
-     * Gets the largest gobblet from the given gobblets array.
-     * @param gobblets - An array of gobblets.
-     * @returns The gobblet with the largest size.
-     */
-    private static getLargestGobblet(gobblets: Gobblet[]): Gobblet {
-        return gobblets.sort((a, b) => b.size - a.size)[0];
     }
 
 }

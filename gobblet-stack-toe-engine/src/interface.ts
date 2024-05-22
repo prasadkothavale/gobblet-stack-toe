@@ -1,7 +1,7 @@
 import SizedStack, {Sized} from './sized-stack';
 
 export enum Player {
-    WHITE, BLACK
+    WHITE = "WHITE", BLACK = "BLACK"
 }
 
 export class Gobblet implements Sized {
@@ -20,8 +20,13 @@ export class Gobblet implements Sized {
 
 export class Location {
     
+    /** If board is true then location is for board else location is for external stack */
     board: boolean;
+
+    /** If board is true x is x axis of the board else x is external stack number */
     x: number;
+
+    /** If board is true y is y axis of the board else insignificant for external stack */
     y: number;
 
     constructor(board: boolean, x: number, y: number) {
@@ -37,7 +42,6 @@ export class Location {
 }
 
 export interface Move {
-    gobblet: Gobblet;
     source: Location;
     target: Location;
 }

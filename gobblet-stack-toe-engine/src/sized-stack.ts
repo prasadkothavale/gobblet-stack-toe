@@ -6,14 +6,14 @@ export default class SizedStack<T extends Sized> {
     stack: T[] = [];
 
     public canPush(item: T): boolean {
-        return this.peek().size < item.size;
+        return this.isEmpty() || this.peek().size < item.size;
     }
     
     public push(item: T): void {
         if (this.canPush(item)) {
             this.stack.push(item);
         } else {
-            throw new Error(`Cannot push item: ${item}, to stack: ${this.toString()}`);
+            throw new Error(`Cannot push item: ${JSON.stringify(item)}, to stack: ${this.toString()}`);
         }
     }
 
@@ -42,6 +42,6 @@ export default class SizedStack<T extends Sized> {
     }
 
     public toString(): string {
-        return this.stack.toString();
+        return JSON.stringify(this.stack);
     }
 }
