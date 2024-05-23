@@ -156,6 +156,13 @@ export default class GameEngine {
         if (!targetStack.canPush(gobblet)) {
             return {valid: false, reason: 'You can only capture the gobblet by the larger gobblet.'};
         }
+        if (!source.board && !targetStack.isEmpty()) {
+            const possibleSequences = this.checkSequence(game.board, game.config.boardSize, game.config.boardSize - 1);
+            if (!possibleSequences.some(sequence => sequence.player !== game.turn)) {
+                return {valid: false, reason: `You can capture a gobblet on board by a larget gobblet only from board. 
+                Capturing directly by gobblet from external stack only permitted when opponent has ${game.config.boardSize - 1} gobblets in a row.`};
+            }
+        }
 
         return {valid: true, reason: null};
     }
