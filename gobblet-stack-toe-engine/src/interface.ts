@@ -1,5 +1,7 @@
 import SizedStack, {Sized} from './sized-stack';
 
+const asciiA = 'A'.charCodeAt(0);
+
 export enum Player {
     WHITE = "WHITE", BLACK = "BLACK"
 }
@@ -8,7 +10,7 @@ export class Gobblet implements Sized {
     player: Player;
     size: number;
 
-    constructor(player: Player, size: number) {
+    public constructor(player: Player, size: number) {
         this.player = player;
         this.size = size;
     }
@@ -23,27 +25,71 @@ export class Location {
     /** If board is true then location is for board else location is for external stack */
     board: boolean;
 
-    /** If board is true x is x axis of the board else x is external stack number */
+    /** If board is true x is x axis of the board else insignificant for external stack */
     x: number;
 
-    /** If board is true y is y axis of the board else insignificant for external stack */
+    /** If board is true y is y axis of the board else y is external stack number */
     y: number;
 
-    constructor(board: boolean, x: number, y: number) {
+    public constructor(board: boolean, x: number, y: number) {
         this.board = board;
         this.x = x;
         this.y = y;
     }
+
+    public static parseLocation(subNotation: string): Location {
+        if (!subNotation || subNotation.trim() === '') {
+            throw new Error('Invalid subNotation: ' + subNotation);
+        }
+        const [_, x, y] = subNotation.match(/([A-Za-z#])(\d{1,2})/)
+        if (!x ||!y) {
+            throw new Error('Invalid subNotation: ' + subNotation);
+        }
+        const board = x !== '#';
+        return new Location(board, 
+            board? x.charCodeAt(0) - asciiA : null, 
+            parseInt(y, 10));
+    }
+
+    public toSubNotation(): string {
+        return `${this.board? String.fromCharCode(this.x + asciiA) : '#'}${this.y}`;
+    }
     
-    equals(other: Location): boolean {
+    public equals(other: Location): boolean {
         return this.board === other.board && this.x === other.x && this.y === other.y;
     }
 
 }
 
-export interface Move {
+export class Move {
     source: Location;
     target: Location;
+
+    public constructor(source: Location, target: Location) {
+        this.source = source;
+        this.target = target;
+    }
+
+    /**
+     * Parses a game move notation string into a Move object.
+     *
+     * @param notation - A string representing the move notation, e.g., "A1-B2".
+     *                   If source is external stack then notation can be "#1-A3" or "#2-B2".
+     * @returns A Move object representing the parsed move.
+     */
+    public static fromNotation(notation: string): Move {
+        try {
+            const [s, t] = notation.split('-');
+            return new Move(Location.parseLocation(s), Location.parseLocation(t));
+        } catch (e) {
+            console.error(e);
+            throw new Error(`Invalid move notation: ${notation}. ${e}`);
+        }
+    }
+
+    public toNotation(): string {
+        return `${this.source.toSubNotation()}-${this.target.toSubNotation()}`;
+    }
 }
 
 export interface Game {

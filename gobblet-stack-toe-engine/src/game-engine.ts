@@ -34,7 +34,7 @@ export default class GameEngine {
         const target = move.target;
         GameEngine.verifyMove(game, move);
 
-        const sourceStack: SizedStack<Gobblet> = source.board ? game.board[source.x][source.y] : game.externalStack[source.x];
+        const sourceStack: SizedStack<Gobblet> = source.board ? game.board[source.x][source.y] : game.externalStack[source.y];
         const targetStack: SizedStack<Gobblet> = game.board[target.x][target.y];
         targetStack.push(sourceStack.pop());
         game.moves.push(move);
@@ -148,7 +148,7 @@ export default class GameEngine {
             return {valid: false, reason: 'The gobblet does not belong to the current player.'};
         }
 
-        const sourceStack: SizedStack<Gobblet> = source.board ? game.board[source.x][source.y] : game.externalStack[source.x];
+        const sourceStack: SizedStack<Gobblet> = source.board ? game.board[source.x][source.y] : game.externalStack[source.y];
         const targetStack: SizedStack<Gobblet> = game.board[target.x][target.y];
         if (sourceStack.isEmpty()) {
             return {valid: false, reason: 'The source location is empty.'};
@@ -159,7 +159,7 @@ export default class GameEngine {
         if (!source.board && !targetStack.isEmpty()) {
             const possibleSequences = this.checkSequence(game.board, game.config.boardSize, game.config.boardSize - 1);
             if (!possibleSequences.some(sequence => sequence.player !== game.turn)) {
-                return {valid: false, reason: `You can capture a gobblet on board by a larget gobblet only from board. 
+                return {valid: false, reason: `You can capture a gobblet on board by a largest gobblet only from board. 
                 Capturing directly by gobblet from external stack only permitted when opponent has ${game.config.boardSize - 1} gobblets in a row.`};
             }
         }
