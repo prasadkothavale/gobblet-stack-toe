@@ -25,9 +25,19 @@ export default class GameEngine {
 
     /**
      * Performs a move in the game.
-     * @param game - The current game state.
+     * @param game - The current game.
+     * @param notation - The move notation to be performed.
+     * @returns The updates the game and returns game board after the move is performed.
+     */
+    public static performMoveFromNotation(game: Game, notation: string): SizedStack<Gobblet>[][] {
+        return GameEngine.performMove(game, Move.fromNotation(notation));
+    }
+
+    /**
+     * Performs a move in the game.
+     * @param game - The current game.
      * @param move - The move to be performed.
-     * @returns The updated game board after the move is performed.
+     * @returns The updates the game and returns game board after the move is performed.
      */
     public static performMove(game: Game, move: Move): SizedStack<Gobblet>[][] {
         const source = move.source;
@@ -52,14 +62,36 @@ export default class GameEngine {
     public static getGameState(board: SizedStack<Gobblet>[][]): GameState {
         const boardSize: number = board.length;
         const playerSequences: PlayerSequence[] = GameEngine.checkSequence(board, boardSize, boardSize);
+        const whiteSequences = playerSequences.filter(sequence => sequence.player === Player.WHITE);
+        const blackSequences = playerSequences.filter(sequence => sequence.player === Player.BLACK);
 
-        if (playerSequences.length === 1) {
+        if (whiteSequences.length > blackSequences.length) {
             return {
-                winner: playerSequences[0].player,
-                sequences: [playerSequences[0].sequence],
+                winner: Player.WHITE,
+                sequences: [whiteSequences[0].sequence],
                 status: GameStatus.END
             }
+        } else if (blackSequences.length > whiteSequences.length) {
+            return {
+                winner: Player.BLACK,
+                sequences: [blackSequences[0].sequence],
+                status: GameStatus.END
+            }
+        } else if (playerSequences.length > 1 && whiteSequences.length === blackSequences.length) {
+            return {
+                winner: null,
+                sequences: playerSequences.map(sequence => sequence.sequence),
+                status: GameStatus.DOUBLE_DRAW
+            }
+        } else {
+            return {
+                winner: null,
+                sequences: [],
+                status: GameStatus.LIVE
+            }
         }
+
+        //TODO: check draw conditions
     }
 
     /**
@@ -143,7 +175,7 @@ export default class GameEngine {
             return {valid: false, reason: 'You cannot remove gobblet from the board.'};
         }
 
-        const gobblet: Gobblet = game.board[source.x][source.y].peek();
+        const gobblet: Gobblet = source.board? game.board[source.x][source.y].peek() : game.externalStack[source.y].peek();
         if (gobblet.player !== game.turn) {
             return {valid: false, reason: 'The gobblet does not belong to the current player.'};
         }
