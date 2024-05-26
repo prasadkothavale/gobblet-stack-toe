@@ -19,52 +19,55 @@ describe('Game engine', () => {
         expect(() => ge.performMove(game, new Move(new Location(false, null, 0), null)))
         .toThrow('Invalid move: Target location is null.');
         
-        ge.performMoveFromNotation(game, '#0-D4');
+        expect(() => ge.performMoveFromNotation(game, '#1-D5'))
+        .toThrow('Invalid move: Source or target locations are out of bounds.');
+
+        ge.performMoveFromNotation(game, '#1-D4');
         expect(game.turn).toEqual(Player.BLACK);
 
-        ge.performMoveFromNotation(game, '#3-A0');
+        ge.performMoveFromNotation(game, '#4-A1');
         expect(game.turn).toEqual(Player.WHITE);
 
         expect(() => ge.performMoveFromNotation(game, 'D4-D4'))
         .toThrow('Invalid move: Source and target locations are the same.');
         
-        expect(() => ge.performMoveFromNotation(game, 'D4-#0'))
+        expect(() => ge.performMoveFromNotation(game, 'D4-#1'))
         .toThrow('Invalid move: You cannot remove gobblet from the board.');
         
-        expect(() => ge.performMoveFromNotation(game, 'A0-A1'))
+        expect(() => ge.performMoveFromNotation(game, 'A1-A2'))
         .toThrow('Invalid move: The gobblet does not belong to the current player.');
         
-        expect(() => ge.performMoveFromNotation(game, 'A1-A0'))
-        .toThrow('The source location is empty.');
+        expect(() => ge.performMoveFromNotation(game, 'A2-A1'))
+        .toThrow('Invalid move: The source location is empty.');
         
-        expect(() => ge.performMoveFromNotation(game, '#0-A0'))
-        .toThrow('You can only capture the gobblet by the larger gobblet.');
+        expect(() => ge.performMoveFromNotation(game, '#1-A1'))
+        .toThrow('Invalid move: You can only capture the gobblet by the larger gobblet.');
 
-        ge.performMoveFromNotation(game, '#0-A4');
+        ge.performMoveFromNotation(game, '#1-A4');
 
-        expect(() => ge.performMoveFromNotation(game, '#4-A4'))
-        .toThrow('You can capture a gobblet on board by a largest gobblet only from board. Capturing directly by gobblet from external stack only permitted when opponent has 3 gobblets in a row.');
+        expect(() => ge.performMoveFromNotation(game, '#5-A4'))
+        .toThrow('Invalid move: You can capture a gobblet on board by a largest gobblet only from board. Capturing directly by gobblet from external stack only permitted when opponent has 3 gobblets in a row.');
 
-        ge.performMoveFromNotation(game, '#3-D0');
+        ge.performMoveFromNotation(game, '#4-D1');
         
-        expect(() => ge.performMoveFromNotation(game, '#3-B4'))
+        expect(() => ge.performMoveFromNotation(game, '#4-B4'))
         .toThrow('Invalid move: The gobblet does not belong to the current player.');
-
-        ge.performMoveFromNotation(game, '#0-B4');
-        ge.performMoveFromNotation(game, '#4-B4');
-        
-        expect(() => ge.performMoveFromNotation(game, '#0-C4'))
-        .toThrow('The source location is empty.');
 
         ge.performMoveFromNotation(game, '#1-B4');
-        ge.performMoveFromNotation(game, '#3-B0');
-        ge.performMoveFromNotation(game, '#1-B0');
-        ge.performMoveFromNotation(game, '#4-C0');
-        ge.performMoveFromNotation(game, '#2-A4');
-        ge.performMoveFromNotation(game, 'B4-B0');
+        ge.performMoveFromNotation(game, '#5-B4');
+        
+        expect(() => ge.performMoveFromNotation(game, '#1-C4'))
+        .toThrow('Invalid move: The source location is empty.');
+
+        ge.performMoveFromNotation(game, '#2-B4');
+        ge.performMoveFromNotation(game, '#4-B1');
+        ge.performMoveFromNotation(game, '#2-B1');
+        ge.performMoveFromNotation(game, '#5-C1');
+        ge.performMoveFromNotation(game, '#3-A4');
+        ge.performMoveFromNotation(game, 'B4-B1');
         expect(game.state.status).toEqual(GameStatus.DOUBLE_DRAW);
 
-        ge.performMoveFromNotation(game, 'A4-C0');
+        ge.performMoveFromNotation(game, 'A4-C1');
         expect(game.state.status).toEqual(GameStatus.END);
         expect(game.state.winner).toEqual(Player.WHITE);
         expect(game.moves.length).toEqual(13);

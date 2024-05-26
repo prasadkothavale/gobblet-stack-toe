@@ -3,7 +3,11 @@ export interface Sized {
 }
 
 export default class SizedStack<T extends Sized> {
-    stack: T[] = [];
+    stack: T[];
+
+    constructor() {
+        this.stack = [];
+    }
 
     public canPush(item: T): boolean {
         return this.isEmpty() || this.peek().size < item.size;

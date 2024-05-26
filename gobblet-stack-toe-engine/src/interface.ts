@@ -1,6 +1,6 @@
 import SizedStack, {Sized} from './sized-stack';
 
-const asciiA = 'A'.charCodeAt(0);
+export const ASCII_A = 'A'.charCodeAt(0);
 
 export enum Player {
     WHITE = "WHITE", BLACK = "BLACK"
@@ -47,12 +47,12 @@ export class Location {
         }
         const board = x !== '#';
         return new Location(board, 
-            board? x.charCodeAt(0) - asciiA : null, 
-            parseInt(y, 10));
+            board? x.charCodeAt(0) - ASCII_A : null, 
+            parseInt(y, 10) - 1);
     }
 
     public toSubNotation(): string {
-        return `${this.board? String.fromCharCode(this.x + asciiA) : '#'}${this.y}`;
+        return `${this.board? String.fromCharCode(this.x + ASCII_A) : '#'}${this.y}`;
     }
     
     public equals(other: Location): boolean {

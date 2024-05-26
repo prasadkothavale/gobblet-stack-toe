@@ -1,5 +1,6 @@
 import { Move, Gobblet, Player, Game, GameStatus, GameConfig, Location, MoveStatus, GameState, PlayerSequence } from './interface';
 import SizedStack from './sized-stack';
+import AtomicReference from './atomic-reference';
 
 export default class GameEngine {
 
@@ -30,6 +31,7 @@ export default class GameEngine {
      * @returns The updates the game and returns game board after the move is performed.
      */
     public static performMoveFromNotation(game: Game, notation: string): SizedStack<Gobblet>[][] {
+        console.log(notation);
         return GameEngine.performMove(game, Move.fromNotation(notation));
     }
 
@@ -51,7 +53,7 @@ export default class GameEngine {
         game.state = GameEngine.getGameState(game.board);
         game.turn = game.turn === Player.WHITE? Player.BLACK : Player.WHITE;
 
-        return game.board;
+        return JSON.parse(JSON.stringify(game.board));
     }
 
     /**
@@ -61,7 +63,7 @@ export default class GameEngine {
      */
     public static getGameState(board: SizedStack<Gobblet>[][]): GameState {
         const boardSize: number = board.length;
-        const playerSequences: PlayerSequence[] = GameEngine.checkSequence(board, boardSize, boardSize);
+        const playerSequences: PlayerSequence[] = GameEngine.checkSequence(board, boardSize, boardSize, true);
         const whiteSequences = playerSequences.filter(sequence => sequence.player === Player.WHITE);
         const blackSequences = playerSequences.filter(sequence => sequence.player === Player.BLACK);
 
@@ -101,38 +103,39 @@ export default class GameEngine {
      * @param sequenceSize - The size of the sequence expected.
      * @returns sequences gobblets formed by players on the board.
      */
-    private static checkSequence(board: SizedStack<Gobblet>[][], boardSize: number, sequenceSize: number): PlayerSequence[] {
+    private static checkSequence(board: SizedStack<Gobblet>[][], boardSize: number, sequenceSize: number, checkCompleteSequence: boolean): PlayerSequence[] {
         const playerSequences: PlayerSequence[] = [];
 
         // check rows
         board.forEach((row: SizedStack<Gobblet>[], x) => {
-            let sequence: Location[] | null = null;
-            let sequencePlayer: Player | null = null;
-            row.forEach((cell: SizedStack<Gobblet>, y) => GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences));
+            let sequence: Location[] = [];
+            const sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
+            row.forEach((cell: SizedStack<Gobblet>, y) => 
+                GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences, checkCompleteSequence));
         });
 
         // check columns
         for (let y = 0; y < boardSize; y++) {
-            let sequence: Location[] | null = null;
-            let sequencePlayer: Player | null = null;
+            let sequence: Location[] = [];
+            let sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
             for (let x = 0; x < boardSize; x++) {
                 const cell: SizedStack<Gobblet> = board[x][y];
-                GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences);
+                GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences, checkCompleteSequence);
             }
         }
 
         // check diagonals
         for (let i = 0; i < boardSize; i++) {
-            let sequence: Location[] | null = null;
-            let sequencePlayer: Player | null = null;
+            let sequence: Location[] = [];
+            let sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
             const cell: SizedStack<Gobblet> = board[i][i];
-            GameEngine.checkCell(cell, sequencePlayer, sequence, i, i, sequenceSize, playerSequences);
+            GameEngine.checkCell(cell, sequencePlayer, sequence, i, i, sequenceSize, playerSequences, checkCompleteSequence);
         }
         for (let i = 0; i < boardSize; i++) {
-            let sequence: Location[] | null = null;
-            let sequencePlayer: Player | null = null;
+            let sequence: Location[] = [];
+            let sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
             const cell: SizedStack<Gobblet> = board[i][boardSize - i - 1];
-            GameEngine.checkCell(cell, sequencePlayer, sequence, i, boardSize - i - 1, sequenceSize, playerSequences);
+            GameEngine.checkCell(cell, sequencePlayer, sequence, i, boardSize - i - 1, sequenceSize, playerSequences, checkCompleteSequence);
         }
 
         return playerSequences;
@@ -149,6 +152,7 @@ export default class GameEngine {
     private static verifyMove(game: Game, move: Move): void {
         const moveStatus = GameEngine.runGameRules(game, move);
         if (!moveStatus.valid) {
+            console.warn(game.moves.map(move => move.toNotation()).join('\n'));
             throw new Error(`Invalid move: ${moveStatus.reason}`);
         }
     }
@@ -161,7 +165,10 @@ export default class GameEngine {
      */
     private static runGameRules(game: Game, move: Move): MoveStatus {
         
+        console.log(move)
         const {source, target} = move;
+        const {boardSize} = game.config;
+
         if (source === null) {
             return {valid: false, reason: 'Source location is null.'};
         }
@@ -174,10 +181,8 @@ export default class GameEngine {
         if (!target.board) {
             return {valid: false, reason: 'You cannot remove gobblet from the board.'};
         }
-
-        const gobblet: Gobblet = source.board? game.board[source.x][source.y].peek() : game.externalStack[source.y].peek();
-        if (gobblet.player !== game.turn) {
-            return {valid: false, reason: 'The gobblet does not belong to the current player.'};
+        if ([source, target].some(location => !GameEngine.isLocationInBounds(location, game.config))) {
+            return {valid: false, reason: 'Source or target locations are out of bounds.'};
         }
 
         const sourceStack: SizedStack<Gobblet> = source.board ? game.board[source.x][source.y] : game.externalStack[source.y];
@@ -185,14 +190,19 @@ export default class GameEngine {
         if (sourceStack.isEmpty()) {
             return {valid: false, reason: 'The source location is empty.'};
         }
+
+        const gobblet: Gobblet = source.board? game.board[source.x][source.y].peek() : game.externalStack[source.y].peek();
+        if (gobblet.player !== game.turn) {
+            return {valid: false, reason: 'The gobblet does not belong to the current player.'};
+        }
         if (!targetStack.canPush(gobblet)) {
+            console.error(targetStack, gobblet);
             return {valid: false, reason: 'You can only capture the gobblet by the larger gobblet.'};
         }
         if (!source.board && !targetStack.isEmpty()) {
-            const possibleSequences = this.checkSequence(game.board, game.config.boardSize, game.config.boardSize - 1);
+            const possibleSequences = this.checkSequence(game.board, boardSize, boardSize - 1, false);
             if (!possibleSequences.some(sequence => sequence.player !== game.turn)) {
-                return {valid: false, reason: `You can capture a gobblet on board by a largest gobblet only from board. 
-                Capturing directly by gobblet from external stack only permitted when opponent has ${game.config.boardSize - 1} gobblets in a row.`};
+                return {valid: false, reason: `You can capture a gobblet on board by a largest gobblet only from board. Capturing directly by gobblet from external stack only permitted when opponent has ${boardSize - 1} gobblets in a row.`};
             }
         }
 
@@ -212,18 +222,24 @@ export default class GameEngine {
      * @param playerSequences - The list of player sequences found so far.
      */
     private static checkCell(
-            cell: SizedStack<Gobblet>, sequencePlayer: Player, sequence: Location[], x: number, y: number, 
-            sequenceSize: number, playerSequences: PlayerSequence[]
+            cell: SizedStack<Gobblet>, sequencePlayer: AtomicReference<Player>, sequence: Location[], x: number, y: number, 
+            sequenceSize: number, playerSequences: PlayerSequence[], checkCompleteSequence: boolean
     ): void {
         const gobblet: Gobblet = cell.peek();
-        if (sequencePlayer && sequencePlayer === gobblet.player) {
+        if (!gobblet && checkCompleteSequence) {
+            sequence.splice(0, sequence.length);
+            return;
+        } else if (!gobblet) {
+            return;
+        } else if (sequencePlayer && sequencePlayer.get() === gobblet.player) {
             sequence.push(new Location(true, x, y));
         } else {
-            sequencePlayer = gobblet.player;
-            sequence = [new Location(true, x, y)];
+            sequencePlayer.set(gobblet.player);
+            sequence.splice(0, sequence.length);
+            sequence.push(new Location(true, x, y));
         }
         if (sequence.length === sequenceSize) {
-            playerSequences.push({player: sequencePlayer, sequence});
+            playerSequences.push({player: sequencePlayer.get(), sequence});
         }
     }
     
@@ -259,6 +275,12 @@ export default class GameEngine {
             }
         }
         return board;
+    }
+
+    private static isLocationInBounds(location: Location, gameConfig: GameConfig): boolean {
+        const {board, x, y} = location;
+        const {boardSize, gobbletsPerSize} = gameConfig;
+        return board? x >= 0 && x < boardSize && y >= 0 && y < boardSize : y >= 0 && y < gobbletsPerSize * 2;
     }
 
 }
