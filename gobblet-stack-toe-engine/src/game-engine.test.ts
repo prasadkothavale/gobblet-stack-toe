@@ -46,7 +46,7 @@ describe('Game engine', () => {
         ge.performMoveFromNotation(game, '#1-A4');
 
         expect(() => ge.performMoveFromNotation(game, '#5-A4'))
-        .toThrow('Invalid move: You can capture a gobblet on board by a largest gobblet only from board. Capturing directly by gobblet from external stack only permitted when opponent has 3 gobblets in a row.');
+        .toThrow('Invalid move: You can capture a gobblet on board by a larger gobblet only from board. Capturing directly by gobblet from external stack is only permitted when opponent has 3 gobblets in a row, column or diagonal.');
 
         ge.performMoveFromNotation(game, '#4-D1');
         
@@ -59,7 +59,7 @@ describe('Game engine', () => {
         expect(() => ge.performMoveFromNotation(game, '#1-C4'))
         .toThrow('Invalid move: The source location is empty.');
 
-        ge.performMoveFromNotation(game, '#2-B4');
+        ge.performMoveFromNotation(game, '#2-C4');
         ge.performMoveFromNotation(game, '#4-B1');
         ge.performMoveFromNotation(game, '#2-B1');
         ge.performMoveFromNotation(game, '#5-C1');

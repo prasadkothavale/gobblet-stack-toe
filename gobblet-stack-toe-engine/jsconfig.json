@@ -3,5 +3,6 @@
         "include": [
             "jest"
         ]
-    }
+    },
+    "testPathIgnorePatterns": ["dist"]
 }

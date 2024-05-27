@@ -52,7 +52,7 @@ export class Location {
     }
 
     public toSubNotation(): string {
-        return `${this.board? String.fromCharCode(this.x + ASCII_A) : '#'}${this.y}`;
+        return `${this.board? String.fromCharCode(this.x + ASCII_A) : '#'}${this.y + 1}`;
     }
     
     public equals(other: Location): boolean {
