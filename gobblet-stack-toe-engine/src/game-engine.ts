@@ -31,7 +31,6 @@ export default class GameEngine {
      * @returns The updates the game and returns game board after the move is performed.
      */
     public static performMoveFromNotation(game: Game, notation: string): SizedStack<Gobblet>[][] {
-        console.log(notation);
         return GameEngine.performMove(game, Move.fromNotation(notation));
     }
 
@@ -152,7 +151,6 @@ export default class GameEngine {
     private static verifyMove(game: Game, move: Move): void {
         const moveStatus = GameEngine.runGameRules(game, move);
         if (!moveStatus.valid) {
-            console.debug(game.moves.map(move => move.toNotation()).join('\n'));
             throw new Error(`Invalid move: ${moveStatus.reason}`);
         }
     }
@@ -165,7 +163,6 @@ export default class GameEngine {
      */
     private static runGameRules(game: Game, move: Move): MoveStatus {
         
-        console.log(move)
         const {source, target} = move;
         const {boardSize} = game.config;
 
@@ -196,33 +193,48 @@ export default class GameEngine {
             return {valid: false, reason: 'The gobblet does not belong to the current player.'};
         }
         if (!targetStack.canPush(gobblet)) {
-            console.error(targetStack, gobblet);
             return {valid: false, reason: 'You can only capture the gobblet by the larger gobblet.'};
         }
         if (!source.board && !targetStack.isEmpty()) {
-            if (this.allowDirectCapture(game.board, game.turn, target, boardSize - 1)) {
-                return {valid: false, reason: `You can capture a gobblet on board by a larger gobblet only from board. Capturing directly by gobblet from external stack is only permitted when opponent has ${boardSize - 1} gobblets in a row, column or diagonal.`};
+            if (!this.allowDirectCapture(game.board, game.turn, target, boardSize - 1)) {
+                return {valid: false, reason: `You can capture an opponent's gobblet on board by a larger gobblet only from board. Capturing directly by gobblet from external stack is only permitted when opponent has ${boardSize - 1} gobblets in a row, column or diagonal.`};
             }
         }
 
         return {valid: true, reason: null};
     }
 
+    /**
+     * Verifies if a player can make a direct capture from the external stack to the target location on the board.
+     * A direct capture is allowed when the opponent has a sequence of gobblets equal to the board size - 1.
+     * @param board - The current game board.
+     * @param player - The current player.
+     * @param target - The target location on the board.
+     * @param sequenceSize - The size of the sequence expected usually board size - 1.
+     * @returns {boolean} - Returns true if a direct capture is allowed, otherwise false.
+     */
     private static allowDirectCapture(
         board: SizedStack<Gobblet>[][], player: Player, target: Location, sequenceSize: number
     ): boolean {
+        const targetStack: SizedStack<Gobblet> = board[target.y][target.x];
         const opponent: Player = player === Player.WHITE? Player.BLACK : Player.WHITE;
+
+        // player can direct capture own gobblet
+        if (targetStack.peek() && targetStack.peek().player === player) {
+            return true;
+        }
 
         // check target row
         let count: number = board[target.y]
-            .reduce((_count: number, stack: SizedStack<Gobblet>) => stack.peek().player === opponent && _count + 1, 0);
+            .reduce((_count: number, stack: SizedStack<Gobblet>) => 
+                stack.peek() && stack.peek().player === opponent? _count + 1 : _count, 0);
         if (count === sequenceSize) {
             return true;
         }
 
         // check target column
         count = board.map((row: SizedStack<Gobblet>[]) =>  row[target.x])
-            .reduce((_count: number, stack: SizedStack<Gobblet>) => stack.peek().player === opponent && _count + 1, 0);
+            .reduce((_count: number, stack: SizedStack<Gobblet>) => stack.peek() && stack.peek().player === opponent? _count + 1 : _count, 0);
         if (count === sequenceSize) {
             return true;
         }

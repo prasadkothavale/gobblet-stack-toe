@@ -46,7 +46,7 @@ describe('Game engine', () => {
         ge.performMoveFromNotation(game, '#1-A4');
 
         expect(() => ge.performMoveFromNotation(game, '#5-A4'))
-        .toThrow('Invalid move: You can capture a gobblet on board by a larger gobblet only from board. Capturing directly by gobblet from external stack is only permitted when opponent has 3 gobblets in a row, column or diagonal.');
+        .toThrow('Invalid move: You can capture an opponent\'s gobblet on board by a larger gobblet only from board. Capturing directly by gobblet from external stack is only permitted when opponent has 3 gobblets in a row, column or diagonal.');
 
         ge.performMoveFromNotation(game, '#4-D1');
         
@@ -72,10 +72,10 @@ describe('Game engine', () => {
         expect(game.state.winner).toEqual(Player.WHITE);
         expect(game.moves.length).toEqual(13);
         
-        expect(game.board[0][3].peek().equals(new Gobblet(Player.WHITE, 3))).toBeTruthy();
-        expect(game.board[1][3].peek().equals(new Gobblet(Player.WHITE, 1))).toBeTruthy();
-        expect(game.board[2][3].peek().equals(new Gobblet(Player.WHITE, 3))).toBeTruthy();
-        expect(game.board[3][3].peek().equals(new Gobblet(Player.WHITE, 3))).toBeTruthy();
+        expect(game.board[3][0].peek().equals(new Gobblet(Player.WHITE, 1))).toBeTruthy();
+        expect(game.board[3][1].peek().equals(new Gobblet(Player.WHITE, 0))).toBeTruthy();
+        expect(game.board[3][2].peek().equals(new Gobblet(Player.WHITE, 2))).toBeTruthy();
+        expect(game.board[3][3].peek().equals(new Gobblet(Player.WHITE, 2))).toBeTruthy();
     });
 
 });
