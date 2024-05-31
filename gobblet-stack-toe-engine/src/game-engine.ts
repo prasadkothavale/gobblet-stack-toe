@@ -95,6 +95,19 @@ export default class GameEngine {
         //TODO: check draw conditions
     }
 
+    public static getBoardNumber(board: SizedStack<Gobblet>[][], config: GameConfig): number {
+        let boardNumber: number = 0;
+        board.forEach((row: SizedStack<Gobblet>[], y: number) => {
+            row.forEach((cell: SizedStack<Gobblet>, x: number) => {
+                const stack: Gobblet[] = cell.toArray();
+                for(let size: number = 0; size < config.gobbletSize; size++) {
+                    //TODO derive board number
+                }
+            });
+        });
+        return boardNumber;
+    }
+
     /**
      * Finds sequences gobblets formed by players on the board.
      * @param board - The current game board.
@@ -334,6 +347,10 @@ export default class GameEngine {
         const {board, x, y} = location;
         const {boardSize, gobbletsPerSize} = gameConfig;
         return board? x >= 0 && x < boardSize && y >= 0 && y < boardSize : y >= 0 && y < gobbletsPerSize * 2;
+    }
+
+    private static getPlayerNumber(gobblet: Gobblet) {
+        return !gobblet? 0 : gobblet.player === Player.WHITE ? 1 : 2
     }
 
 }
