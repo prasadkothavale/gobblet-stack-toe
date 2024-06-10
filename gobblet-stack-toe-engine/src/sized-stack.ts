@@ -41,6 +41,12 @@ export default class SizedStack<T extends Sized> {
         this.stack = [];
     }
 
+    public clone(): SizedStack<T> {
+        const clone: SizedStack<T> = new SizedStack<T>();
+        clone.stack = this.stack.slice();
+        return clone;
+    }
+
     public toArray(): T[] {
         return this.stack.slice();
     }

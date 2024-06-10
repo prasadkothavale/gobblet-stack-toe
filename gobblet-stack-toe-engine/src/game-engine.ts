@@ -95,17 +95,51 @@ export default class GameEngine {
         //TODO: check draw conditions
     }
 
+    
+    public static BASE: number = 3;
+    
+    /**
+     * Calculates the board number from the current game board.
+     * @param board - The current game board.
+     * @param config - The configuration object containing the players, gobblet size, and gobblets per size.
+     * @returns The board number as an integer.
+     */
     public static getBoardNumber(board: SizedStack<Gobblet>[][], config: GameConfig): number {
         let boardNumber: number = 0;
         board.forEach((row: SizedStack<Gobblet>[], y: number) => {
             row.forEach((cell: SizedStack<Gobblet>, x: number) => {
                 const stack: Gobblet[] = cell.toArray();
                 for(let size: number = 0; size < config.gobbletSize; size++) {
-                    //TODO derive board number
+                    const position = size + x * config.gobbletSize + y * row.length;
+                    const gobblet: Gobblet = stack.filter((gobblet: Gobblet) => gobblet.size === size)[0];
+                    if (gobblet) {
+                        boardNumber += GameEngine.getPlayerNumber(gobblet) * Math.pow(GameEngine.BASE, position);
+                    }
                 }
             });
         });
         return boardNumber;
+    }
+
+    public static getBoard(boardNumber: number, config: GameConfig): SizedStack<Gobblet>[][] {
+        const board: SizedStack<Gobblet>[][] = GameEngine.getInitialBoard(config);
+        let _bn: number = boardNumber;
+        board.forEach((row: SizedStack<Gobblet>[], y: number) => {
+            row.forEach((cell: SizedStack<Gobblet>, x: number) => {
+                for(let size: number = 0; size < config.gobbletSize; size++) {
+                    const position = size + x * config.gobbletSize + y * row.length;
+                    const unit = _bn % GameEngine.BASE;
+                    _bn -= unit;
+                    _bn /= GameEngine.BASE;
+
+                    const gobblet: Gobblet = GameEngine.getGobblet(unit, size);
+                    if (gobblet) {
+                        cell.push(gobblet);
+                    }
+                }
+            });
+        });
+        return board;
     }
 
     /**
@@ -351,6 +385,10 @@ export default class GameEngine {
 
     private static getPlayerNumber(gobblet: Gobblet) {
         return !gobblet? 0 : gobblet.player === Player.WHITE ? 1 : 2
+    }
+
+    private static getGobblet(playerNumber: number, size: number): Gobblet {
+        return playerNumber === 0 ? null : new Gobblet(playerNumber === 1 ? Player.WHITE : Player.BLACK, size);
     }
 
 }

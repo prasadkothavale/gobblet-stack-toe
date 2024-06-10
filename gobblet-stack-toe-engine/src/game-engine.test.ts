@@ -1,5 +1,6 @@
 import GameEngine from './game-engine';
 import { GameConfig, Player, Location, Move, GameStatus, Gobblet } from './interface';
+import SizedStack from './sized-stack';
 
 describe('Game engine', () => {
 
@@ -77,5 +78,28 @@ describe('Game engine', () => {
         expect(game.board[3][2].peek().equals(new Gobblet(Player.WHITE, 2))).toBeTruthy();
         expect(game.board[3][3].peek().equals(new Gobblet(Player.WHITE, 2))).toBeTruthy();
     });
+
+    it('can generate board from board number and board number from board', () => {
+        const randomTests: number = 100;
+        const gc: GameConfig = {
+            boardSize: 4,
+            gobbletSize: 3,
+            gobbletsPerSize: 3
+        }
+        const max: number = Math.pow(ge.BASE, gc.boardSize * gc.boardSize * gc.gobbletSize);
+        
+        testBoardToNumberConversion(0, gc);
+        testBoardToNumberConversion(max, gc);
+        for (let i: number = 0; i < randomTests; i++) {
+            testBoardToNumberConversion(Math.round(max * Math.random()) , gc);
+        };
+
+    });
+
+    const testBoardToNumberConversion = (x: number, gc: GameConfig) => {
+        const board: SizedStack<Gobblet>[][] = ge.getBoard(x, gc);
+        const boardNumber: number = ge.getBoardNumber(board, gc);
+        expect(boardNumber).toEqual(x);
+    }
 
 });
