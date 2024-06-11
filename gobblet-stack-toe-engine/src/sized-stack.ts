@@ -5,8 +5,9 @@ export interface Sized {
 export default class SizedStack<T extends Sized> {
     stack: T[];
 
-    constructor() {
+    constructor(items?: T[]) {
         this.stack = [];
+        items ? this.pushArray(items) : undefined
     }
 
     public canPush(item: T): boolean {
@@ -19,6 +20,10 @@ export default class SizedStack<T extends Sized> {
         } else {
             throw new Error(`Cannot push item: ${JSON.stringify(item)}, to stack: ${this.toString()}`);
         }
+    }
+
+    public pushArray(items: T[]): void {
+        items.forEach((item: T) =>  this.push(item))
     }
 
     public pop(): T | null{

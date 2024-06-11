@@ -6,6 +6,10 @@ export enum Player {
     WHITE = "WHITE", BLACK = "BLACK"
 }
 
+export enum Constants {
+    BASE = Object.keys(Player).length + 1
+}
+
 export class Gobblet implements Sized {
     player: Player;
     size: number;

@@ -1,4 +1,4 @@
-import { Move, Gobblet, Player, Game, GameStatus, GameConfig, Location, MoveStatus, GameState, PlayerSequence } from './interface';
+import { Move, Gobblet, Player, Game, GameStatus, GameConfig, Location, MoveStatus, GameState, PlayerSequence, Constants } from './interface';
 import SizedStack from './sized-stack';
 import AtomicReference from './atomic-reference';
 
@@ -94,9 +94,6 @@ export default class GameEngine {
 
         //TODO: check draw conditions
     }
-
-    
-    public static BASE: number = 3;
     
     /**
      * Calculates the board number from the current game board.
@@ -104,16 +101,16 @@ export default class GameEngine {
      * @param config - The configuration object containing the players, gobblet size, and gobblets per size.
      * @returns The board number as an integer.
      */
-    public static getBoardNumber(board: SizedStack<Gobblet>[][], config: GameConfig): number {
-        let boardNumber: number = 0;
+    public static getBoardNumber(board: SizedStack<Gobblet>[][], config: GameConfig): bigint {
+        let boardNumber:bigint = BigInt(0);
         board.forEach((row: SizedStack<Gobblet>[], y: number) => {
             row.forEach((cell: SizedStack<Gobblet>, x: number) => {
                 const stack: Gobblet[] = cell.toArray();
                 for(let size: number = 0; size < config.gobbletSize; size++) {
-                    const position = size + x * config.gobbletSize + y * row.length;
+                    const position = size + x * config.gobbletSize + y * row.length * config.gobbletSize;
                     const gobblet: Gobblet = stack.filter((gobblet: Gobblet) => gobblet.size === size)[0];
                     if (gobblet) {
-                        boardNumber += GameEngine.getPlayerNumber(gobblet) * Math.pow(GameEngine.BASE, position);
+                        boardNumber = boardNumber + BigInt(GameEngine.getPlayerNumber(gobblet)) * (BigInt(Constants.BASE) ** BigInt(position));
                     }
                 }
             });
@@ -121,18 +118,18 @@ export default class GameEngine {
         return boardNumber;
     }
 
-    public static getBoard(boardNumber: number, config: GameConfig): SizedStack<Gobblet>[][] {
+    public static getBoard(boardNumber: bigint, config: GameConfig): SizedStack<Gobblet>[][] {
         const board: SizedStack<Gobblet>[][] = GameEngine.getInitialBoard(config);
-        let _bn: number = boardNumber;
+        let _bn: bigint = boardNumber;
         board.forEach((row: SizedStack<Gobblet>[], y: number) => {
             row.forEach((cell: SizedStack<Gobblet>, x: number) => {
                 for(let size: number = 0; size < config.gobbletSize; size++) {
                     const position = size + x * config.gobbletSize + y * row.length;
-                    const unit = _bn % GameEngine.BASE;
+                    const unit = _bn % BigInt(Constants.BASE);
                     _bn -= unit;
-                    _bn /= GameEngine.BASE;
+                    _bn /= BigInt(Constants.BASE);
 
-                    const gobblet: Gobblet = GameEngine.getGobblet(unit, size);
+                    const gobblet: Gobblet = GameEngine.getGobblet(Number(unit), size);
                     if (gobblet) {
                         cell.push(gobblet);
                     }
@@ -383,7 +380,7 @@ export default class GameEngine {
         return board? x >= 0 && x < boardSize && y >= 0 && y < boardSize : y >= 0 && y < gobbletsPerSize * 2;
     }
 
-    private static getPlayerNumber(gobblet: Gobblet) {
+    private static getPlayerNumber(gobblet: Gobblet): number {
         return !gobblet? 0 : gobblet.player === Player.WHITE ? 1 : 2
     }
 

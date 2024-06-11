@@ -1,5 +1,5 @@
 import GameEngine from './game-engine';
-import { GameConfig, Player, Location, Move, GameStatus, Gobblet } from './interface';
+import { GameConfig, Player, Location, Move, GameStatus, Gobblet, Constants } from './interface';
 import SizedStack from './sized-stack';
 
 describe('Game engine', () => {
@@ -79,26 +79,81 @@ describe('Game engine', () => {
         expect(game.board[3][3].peek().equals(new Gobblet(Player.WHITE, 2))).toBeTruthy();
     });
 
-    it('can generate board from board number and board number from board', () => {
-        const randomTests: number = 100;
+    it('can generate all possible board cells from a number for an unit board', () => {
+        const gc: GameConfig = {
+            boardSize: 1,
+            gobbletSize: 3,
+            gobbletsPerSize: 1
+        }
+        const g: Gobblet[] = [
+            new Gobblet(Player.WHITE, 0),
+            new Gobblet(Player.BLACK, 0),
+            new Gobblet(Player.WHITE, 1),
+            new Gobblet(Player.BLACK, 1),
+            new Gobblet(Player.WHITE, 2),
+            new Gobblet(Player.BLACK, 2),
+        ];
+        const max: bigint = (BigInt(Constants.BASE) ** BigInt(gc.boardSize * gc.boardSize * gc.gobbletSize)) - BigInt(1);
+
+        expect(Constants.BASE).toEqual(3)
+        expect(max).toEqual(BigInt(26));
+        expect(ge.getBoard(BigInt( 0), gc)).toEqual([[new SizedStack<Gobblet>()]]);
+
+        expect(ge.getBoard(BigInt( 1), gc)).toEqual([[new SizedStack<Gobblet>([g[0]])]]);
+        expect(ge.getBoard(BigInt( 2), gc)).toEqual([[new SizedStack<Gobblet>([g[1]])]]);
+        expect(ge.getBoard(BigInt( 3), gc)).toEqual([[new SizedStack<Gobblet>([g[2]])]]);
+        expect(ge.getBoard(BigInt( 6), gc)).toEqual([[new SizedStack<Gobblet>([g[3]])]]);
+        expect(ge.getBoard(BigInt( 9), gc)).toEqual([[new SizedStack<Gobblet>([g[4]])]]);
+        expect(ge.getBoard(BigInt(18), gc)).toEqual([[new SizedStack<Gobblet>([g[5]])]]);
+
+        expect(ge.getBoard(BigInt( 4), gc)).toEqual([[new SizedStack<Gobblet>([g[0], g[2]])]]);
+        expect(ge.getBoard(BigInt( 5), gc)).toEqual([[new SizedStack<Gobblet>([g[1], g[2]])]]);
+        expect(ge.getBoard(BigInt( 7), gc)).toEqual([[new SizedStack<Gobblet>([g[0], g[3]])]]);
+        expect(ge.getBoard(BigInt( 8), gc)).toEqual([[new SizedStack<Gobblet>([g[1], g[3]])]]);
+        expect(ge.getBoard(BigInt(10), gc)).toEqual([[new SizedStack<Gobblet>([g[0], g[4]])]]);
+        expect(ge.getBoard(BigInt(11), gc)).toEqual([[new SizedStack<Gobblet>([g[1], g[4]])]]);
+        expect(ge.getBoard(BigInt(12), gc)).toEqual([[new SizedStack<Gobblet>([g[2], g[4]])]]);
+        expect(ge.getBoard(BigInt(15), gc)).toEqual([[new SizedStack<Gobblet>([g[3], g[4]])]]);
+        expect(ge.getBoard(BigInt(19), gc)).toEqual([[new SizedStack<Gobblet>([g[0], g[5]])]]);
+        expect(ge.getBoard(BigInt(20), gc)).toEqual([[new SizedStack<Gobblet>([g[1], g[5]])]]);
+        expect(ge.getBoard(BigInt(21), gc)).toEqual([[new SizedStack<Gobblet>([g[2], g[5]])]]);
+        expect(ge.getBoard(BigInt(24), gc)).toEqual([[new SizedStack<Gobblet>([g[3], g[5]])]]);
+
+        expect(ge.getBoard(BigInt(13), gc)).toEqual([[new SizedStack<Gobblet>([g[0], g[2], g[4]])]]);
+        expect(ge.getBoard(BigInt(14), gc)).toEqual([[new SizedStack<Gobblet>([g[1], g[2], g[4]])]]);
+        expect(ge.getBoard(BigInt(16), gc)).toEqual([[new SizedStack<Gobblet>([g[0], g[3], g[4]])]]);
+        expect(ge.getBoard(BigInt(17), gc)).toEqual([[new SizedStack<Gobblet>([g[1], g[3], g[4]])]]);
+        expect(ge.getBoard(BigInt(22), gc)).toEqual([[new SizedStack<Gobblet>([g[0], g[2], g[5]])]]);
+        expect(ge.getBoard(BigInt(23), gc)).toEqual([[new SizedStack<Gobblet>([g[1], g[2], g[5]])]]);
+        expect(ge.getBoard(BigInt(25), gc)).toEqual([[new SizedStack<Gobblet>([g[0], g[3], g[5]])]]);
+        expect(ge.getBoard(BigInt(26), gc)).toEqual([[new SizedStack<Gobblet>([g[1], g[3], g[5]])]]);
+
+        for(let i:bigint = BigInt(0); i <= max; i++) {
+            testBoardToNumberConversion(i, gc);
+        }
+    });
+
+    it('can generate board from board number and board number from board for random numbers', () => {
+        const randomTests: number = 10**4;
         const gc: GameConfig = {
             boardSize: 4,
             gobbletSize: 3,
             gobbletsPerSize: 3
         }
-        const max: number = Math.pow(ge.BASE, gc.boardSize * gc.boardSize * gc.gobbletSize);
+        const max: bigint = (BigInt(Constants.BASE) ** BigInt(gc.boardSize * gc.boardSize * gc.gobbletSize)) - BigInt(1);
         
-        testBoardToNumberConversion(0, gc);
+        testBoardToNumberConversion(BigInt(0), gc);
+        expect(max).not.toEqual(max + BigInt(1));
         testBoardToNumberConversion(max, gc);
         for (let i: number = 0; i < randomTests; i++) {
-            testBoardToNumberConversion(Math.round(max * Math.random()) , gc);
+            testBoardToNumberConversion(BigInt(Math.round(Number(max) * Math.random())) , gc);
         };
 
     });
 
-    const testBoardToNumberConversion = (x: number, gc: GameConfig) => {
+    const testBoardToNumberConversion = (x: bigint, gc: GameConfig) => {
         const board: SizedStack<Gobblet>[][] = ge.getBoard(x, gc);
-        const boardNumber: number = ge.getBoardNumber(board, gc);
+        const boardNumber: bigint = ge.getBoardNumber(board, gc);
         expect(boardNumber).toEqual(x);
     }
 
