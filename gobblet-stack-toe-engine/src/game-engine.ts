@@ -97,9 +97,24 @@ export default class GameEngine {
     
     /**
      * Calculates the board number from the current game board.
+     * Let S = distinct gobblet sizes, P = number of players
+     * A cell can have combinations C = (P + 1) ^ S.
+     * A board will have combinations B = C * number of cells => C * board size ^ 2
+     * This function will generate a number N from given board (where 0 <= N < B) to identify a board combination uniquely.
+     * 
+     * #### Logic
+     * Consider P = 2 (w, b) and S = 3 (s, m, l). Board size is 4 x 4
+     * A cell is divided into S i.e 3 subcells, S0 for s, S1 for m and S2 for l. Hence a subcell e.g: S1 will be either empty,
+     * or have wm or bm gobblet, similarly S0 can be empty or ws or bs and S2 can be empty, wl or bl. So a board will have 
+     * S * board size * board size i.e 3 x 4 x 4 subcells, and each subcell has P + 1 i.e 3 combinations. Hence we can represent a 
+     * subcell as base P+1 i.e base 3 number. If a cell has sb, mw, lb gobblets stacked then the base 3 number can be 212. Same
+     * way we can represent board as a base 3 number of length 3 x 4 x 4.
+     * As BigInt works on base 10 numbers hence at the end this function returns base 10 equivalent of base 3 (or base S) number
+     * 
+     * 
      * @param board - The current game board.
      * @param config - The configuration object containing the players, gobblet size, and gobblets per size.
-     * @returns The board number as an integer.
+     * @returns The board number as an bigint.
      */
     public static getBoardNumber(board: SizedStack<Gobblet>[][], config: GameConfig): bigint {
         let boardNumber:bigint = BigInt(0);
@@ -118,6 +133,13 @@ export default class GameEngine {
         return boardNumber;
     }
 
+    /**
+     * Generates a game board from a given board number. This is inverse of getBoardNumber function.
+     * For logic see documentation of getBoardNumber function.
+     * @param boardNumber - The unique identifier of the game board.
+     * @param config - The configuration object containing the players, gobblet size, and gobblets per size.
+     * @returns A game board represented as a 2D array of stacks of gobblets.
+     */
     public static getBoard(boardNumber: bigint, config: GameConfig): SizedStack<Gobblet>[][] {
         const board: SizedStack<Gobblet>[][] = GameEngine.getInitialBoard(config);
         let _bn: bigint = boardNumber;
