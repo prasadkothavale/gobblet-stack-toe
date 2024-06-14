@@ -10,9 +10,11 @@ export default class GameEngine {
      * @returns A new game instance with the specified configuration.
      */
     public static createGame(config: GameConfig): Game {
+        const board: SizedStack<Gobblet>[][] = GameEngine.getInitialBoard(config);
         return {
             moves: [],
-            board: GameEngine.getInitialBoard(config),
+            board,
+            boardHistory: [GameEngine.getBoardNumber(board, config)],
             externalStack: GameEngine.getInitialExternalStack(config),
             turn: Player.WHITE,
             state: {
@@ -159,6 +161,10 @@ export default class GameEngine {
             });
         });
         return board;
+    }
+
+    public static getExternalStackNumber() {
+        //TODO
     }
 
     /**

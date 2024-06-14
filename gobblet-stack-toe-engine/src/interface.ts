@@ -99,6 +99,7 @@ export class Move {
 export interface Game {
     moves: Move[];
     board: SizedStack<Gobblet>[][];
+    boardHistory: bigint[];
     externalStack: SizedStack<Gobblet>[];
     turn: Player;
     state: GameState;
