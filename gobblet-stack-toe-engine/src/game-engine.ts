@@ -163,8 +163,58 @@ export default class GameEngine {
         return board;
     }
 
-    public static getExternalStackNumber() {
-        //TODO
+    /**
+     * Generates a unique identifier for a given external stack of gobblets.
+     * This identifier is represented as a bigint.
+     * The identifier is generated based on the player and size of each gobblet in the external stack.
+     * The identifier is calculated using a base-n number system, where n is the number of possible players + 1.
+     * The position of each gobblet in the identifier is determined by its size and the player.
+     * @param externalStack - The external stack of gobblets.
+     * @param config - The configuration object containing the players, gobblet size, and gobblets per size.
+     * @returns A unique identifier for the given external stack of gobblets as a bigint.
+     */
+    public static getExternalStackNumber(externalStack: SizedStack<Gobblet>[], config: GameConfig) {
+        let externalStackNumber:bigint = BigInt(0);
+        externalStack.forEach((cell: SizedStack<Gobblet>, y: number) => {
+            const stack: Gobblet[] = cell.toArray();
+            for(let size: number = 0; size < config.gobbletSize; size++) {
+                const position = size + y * config.gobbletSize;
+                const gobblet: Gobblet = stack.filter((gobblet: Gobblet) => gobblet.size === size)[0];
+                if (gobblet) {
+                    externalStackNumber = externalStackNumber + BigInt(GameEngine.getPlayerNumber(gobblet)) * (BigInt(Constants.BASE) ** BigInt(position));
+                }
+            }
+        });
+        return externalStackNumber;
+    }
+
+    /**
+     * Generates an external stack from a given external stack number. This is inverse of getExternalStackNumber function.
+     * @param externalStack - The external stack of gobblets.
+     * @param config - The configuration object containing the players, gobblet size, and gobblets per size.
+     * @returns A unique identifier for the given external stack of gobblets as a bigint.
+     */
+    public static getExternalStack(externalStackNumber: bigint, config: GameConfig): SizedStack<Gobblet>[] {
+        const externalStack: SizedStack<Gobblet>[] = [];
+        let _en: bigint = externalStackNumber;
+        let externalStackLength: number = 2 * config.gobbletsPerSize;
+
+        for(let y = 0; y < externalStackLength; y++) {
+            const cell: SizedStack<Gobblet> = new SizedStack<Gobblet>();
+            for(let size: number = 0; size < config.gobbletSize; size++) {
+                const position = size + y * config.gobbletSize;
+                const unit = _en % BigInt(Constants.BASE);
+                _en -= unit;
+                _en /= BigInt(Constants.BASE);
+
+                const gobblet: Gobblet = GameEngine.getGobblet(Number(unit), size);
+                if (gobblet) {
+                    cell.push(gobblet);
+                }
+            }
+            externalStack.push(cell);
+        }
+        return externalStack;
     }
 
     /**

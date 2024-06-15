@@ -151,10 +151,47 @@ describe('Game engine', () => {
 
     });
 
+    it('can generate external stack from external stack number and vice versa', () => {
+        const gc: GameConfig = {
+            boardSize: 4,
+            gobbletSize: 3,
+            gobbletsPerSize: 3
+        }
+        const initialExternalStack: SizedStack<Gobblet>[] = ge.createGame(gc).externalStack;
+        const expectedInitialExternalStackNumber: bigint = BigInt(parseInt('222222222111111111', 3));
+        const actualInitialExternalStackNumber: bigint = ge.getExternalStackNumber(initialExternalStack, gc)
+
+        expect(actualInitialExternalStackNumber).toEqual(expectedInitialExternalStackNumber);
+    });
+
+    it('can generate external stack from external stack number and vice versa for random numbers', () => {
+        const gc: GameConfig = {
+            boardSize: 4,
+            gobbletSize: 3,
+            gobbletsPerSize: 3
+        }
+        const randomTests: number = 10**4;
+        const max: bigint = (BigInt(Constants.BASE) ** BigInt(gc.gobbletsPerSize * 2)) - BigInt(1);
+
+        testExternalStackToNumberConversion(BigInt(0), gc);
+        testExternalStackToNumberConversion(BigInt(max), gc);
+
+        for (let i: number = 0; i < randomTests; i++) {
+            testExternalStackToNumberConversion(BigInt(Math.round(Number(max) * Math.random())) , gc);
+        };
+    });
+
     const testBoardToNumberConversion = (x: bigint, gc: GameConfig) => {
         const board: SizedStack<Gobblet>[][] = ge.getBoard(x, gc);
         const boardNumber: bigint = ge.getBoardNumber(board, gc);
         expect(boardNumber).toEqual(x);
+    }
+
+
+    const testExternalStackToNumberConversion = (x: bigint, gc: GameConfig) => {
+        const externalStack: SizedStack<Gobblet>[] = ge.getExternalStack(x, gc);
+        const externalStackNumber: bigint = ge.getExternalStackNumber(externalStack, gc);
+        expect(externalStackNumber).toEqual(x);
     }
 
 });
