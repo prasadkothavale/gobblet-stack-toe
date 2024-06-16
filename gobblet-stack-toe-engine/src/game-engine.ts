@@ -11,11 +11,13 @@ export default class GameEngine {
      */
     public static createGame(config: GameConfig): Game {
         const board: SizedStack<Gobblet>[][] = GameEngine.getInitialBoard(config);
+        const externalStack: SizedStack<Gobblet>[] = GameEngine.getInitialExternalStack(config);
         return {
             moves: [],
             board,
             boardHistory: [GameEngine.getBoardNumber(board, config)],
-            externalStack: GameEngine.getInitialExternalStack(config),
+            externalStack,
+            externalStackHistory: [GameEngine.getExternalStackNumber(externalStack, config)],
             turn: Player.WHITE,
             state: {
                 winner: null,
@@ -51,7 +53,9 @@ export default class GameEngine {
         const targetStack: SizedStack<Gobblet> = game.board[target.y][target.x];
         targetStack.push(sourceStack.pop());
         game.moves.push(move);
-        game.state = GameEngine.getGameState(game.board);
+        game.boardHistory.push(GameEngine.getBoardNumber(game.board, game.config));
+        game.externalStackHistory.push(GameEngine.getExternalStackNumber(game.externalStack, game.config));
+        game.state = GameEngine.getGameState(game.board, game.boardHistory, game.config);
         game.turn = game.turn === Player.WHITE? Player.BLACK : Player.WHITE;
 
         return game.board;
@@ -62,7 +66,7 @@ export default class GameEngine {
      * @param board - The current game board.
      * @returns An object containing the winner, the winning sequence, and a boolean indicating if the game has ended.
      */
-    public static getGameState(board: SizedStack<Gobblet>[][]): GameState {
+    public static getGameState(board: SizedStack<Gobblet>[][], boardHistory: bigint[], config: GameConfig): GameState {
         const boardSize: number = board.length;
         const playerSequences: PlayerSequence[] = GameEngine.checkSequence(board, boardSize, boardSize);
         const whiteSequences = playerSequences.filter(sequence => sequence.player === Player.WHITE);
@@ -87,14 +91,22 @@ export default class GameEngine {
                 status: GameStatus.DOUBLE_DRAW
             }
         } else {
-            return {
-                winner: null,
-                sequences: [],
-                status: GameStatus.LIVE
+            const boardNumber = GameEngine.getBoardNumber(board, config);
+            const repetition = boardHistory.filter(_bn => _bn === boardNumber).length === Constants.ALLOWED_REPETITIONS;
+            if (repetition) {
+                return {
+                    winner: null,
+                    sequences: [],
+                    status: GameStatus.REPETITION_DRAW
+                }
+            } else {
+                return {
+                    winner: null,
+                    sequences: [],
+                    status: GameStatus.LIVE
+                }
             }
         }
-
-        //TODO: check draw conditions
     }
     
     /**
@@ -288,6 +300,9 @@ export default class GameEngine {
         const {source, target} = move;
         const {boardSize} = game.config;
 
+        if (game.state.status!== GameStatus.LIVE) {
+            return {valid: false, reason: 'The game is over.'};
+        }
         if (source === null) {
             return {valid: false, reason: 'Source location is null.'};
         }

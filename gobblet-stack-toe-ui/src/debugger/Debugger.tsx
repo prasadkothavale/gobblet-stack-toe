@@ -1,6 +1,6 @@
 import React, {useEffect, useState, ReactElement} from 'react';
 import GameEngine from '../../../gobblet-stack-toe-engine/src/game-engine';
-import {GameConfig, Game, Location, ASCII_A, Gobblet} from '../../../gobblet-stack-toe-engine/src/interface';
+import {GameConfig, Game, Location, Constants, Gobblet} from '../../../gobblet-stack-toe-engine/src/interface';
 import SizedStack from '../../../gobblet-stack-toe-engine/src/sized-stack';
 import GobbletUI from '../game/GobbletUI';
 
@@ -47,7 +47,7 @@ export default function Debugger() {
     const renderRows = (): ReactElement[] => {
         const indexCells: ReactElement[] = [<td key="index-row"></td>];
         for (let i = 0; i < gameConfig.boardSize; i++) {
-            const cellIndex: string = String.fromCharCode(ASCII_A + i);
+            const cellIndex: string = String.fromCharCode(Constants.ASCII_A + i);
             indexCells.push(<td key={cellIndex} style={{textAlign: 'center'}}>{cellIndex}</td>);
         }
         const rows: ReactElement[] = [<tr key="index-row">{indexCells}</tr>];

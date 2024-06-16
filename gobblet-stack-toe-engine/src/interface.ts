@@ -1,13 +1,13 @@
 import SizedStack, {Sized} from './sized-stack';
 
-export const ASCII_A = 'A'.charCodeAt(0);
-
 export enum Player {
     WHITE = "WHITE", BLACK = "BLACK"
 }
 
 export enum Constants {
-    BASE = Object.keys(Player).length + 1
+    BASE = Object.keys(Player).length + 1,
+    ALLOWED_REPETITIONS = 3,
+    ASCII_A = 'A'.charCodeAt(0)
 }
 
 export class Gobblet implements Sized {
@@ -51,12 +51,12 @@ export class Location {
         }
         const board = x !== '#';
         return new Location(board, 
-            board? x.charCodeAt(0) - ASCII_A : null, 
+            board? x.charCodeAt(0) - Constants.ASCII_A : null, 
             parseInt(y, 10) - 1);
     }
 
     public toSubNotation(): string {
-        return `${this.board? String.fromCharCode(this.x + ASCII_A) : '#'}${this.y + 1}`;
+        return `${this.board? String.fromCharCode(this.x + Constants.ASCII_A) : '#'}${this.y + 1}`;
     }
     
     public equals(other: Location): boolean {
@@ -101,13 +101,17 @@ export interface Game {
     board: SizedStack<Gobblet>[][];
     boardHistory: bigint[];
     externalStack: SizedStack<Gobblet>[];
+    externalStackHistory: bigint[];
     turn: Player;
     state: GameState;
     config: GameConfig;
 }
 
 export enum GameStatus {
-    LIVE, DRAW, DOUBLE_DRAW, END
+    LIVE = "LIVE", 
+    REPETITION_DRAW = "REPETITION_DRAW", 
+    DOUBLE_DRAW = "DOUBLE_DRAW", 
+    END = "END"
 }
 
 export interface GameConfig {

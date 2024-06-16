@@ -6,7 +6,7 @@ describe('Game engine', () => {
 
     const ge = GameEngine;
     
-    it('plays a rules breaking game', () => {
+    it('plays a rules breaking double draw game', () => {
         const gameConfig: GameConfig = {
             boardSize: 4,
             gobbletSize: 3,
@@ -68,15 +68,102 @@ describe('Game engine', () => {
         ge.performMoveFromNotation(game, 'B4-B1');
         expect(game.state.status).toEqual(GameStatus.DOUBLE_DRAW);
 
-        ge.performMoveFromNotation(game, 'A4-C1');
-        expect(game.state.status).toEqual(GameStatus.END);
-        expect(game.state.winner).toEqual(Player.WHITE);
-        expect(game.moves.length).toEqual(13);
+        expect(() => ge.performMoveFromNotation(game, '#1-C4'))
+        .toThrow('Invalid move: The game is over.');
         
-        expect(game.board[3][0].peek().equals(new Gobblet(Player.WHITE, 1))).toBeTruthy();
+        expect(game.board[3][0].peek().equals(new Gobblet(Player.WHITE, 2))).toBeTruthy();
         expect(game.board[3][1].peek().equals(new Gobblet(Player.WHITE, 0))).toBeTruthy();
         expect(game.board[3][2].peek().equals(new Gobblet(Player.WHITE, 2))).toBeTruthy();
         expect(game.board[3][3].peek().equals(new Gobblet(Player.WHITE, 2))).toBeTruthy();
+        
+        expect(game.state.winner).toBeNull();
+        expect(game.moves.length).toEqual(12);
+        expect(game.boardHistory.length).toEqual(13);
+        expect(game.externalStackHistory.length).toEqual(13);
+        expect(game.boardHistory[12]).toEqual(ge.getBoardNumber(game.board, gameConfig));
+        expect(game.externalStackHistory[12]).toEqual(ge.getExternalStackNumber(game.externalStack, gameConfig));
+    });
+    
+    it('simulates black playing a winning game', () => {
+        const gameConfig: GameConfig = {
+            boardSize: 4,
+            gobbletSize: 3,
+            gobbletsPerSize: 3
+        }
+        const game = ge.createGame(gameConfig);
+        ge.performMoveFromNotation(game, '#1-D4');
+        ge.performMoveFromNotation(game, '#4-B2');
+        ge.performMoveFromNotation(game, '#2-A4');
+        ge.performMoveFromNotation(game, '#5-B3');
+        ge.performMoveFromNotation(game, '#3-D1');
+        ge.performMoveFromNotation(game, '#6-B4');
+        ge.performMoveFromNotation(game, '#1-B1');
+        ge.performMoveFromNotation(game, 'B4-B1');
+        ge.performMoveFromNotation(game, 'D1-B4');
+        ge.performMoveFromNotation(game, 'B3-C4');
+        ge.performMoveFromNotation(game, '#1-D1');
+        ge.performMoveFromNotation(game, '#4-A1');
+        ge.performMoveFromNotation(game, 'D4-A1');
+        ge.performMoveFromNotation(game, '#4-B3');
+        ge.performMoveFromNotation(game, 'D1-D4');
+        ge.performMoveFromNotation(game, 'B2-D4');
+        ge.performMoveFromNotation(game, 'B4-A3');
+        ge.performMoveFromNotation(game, 'C4-A2');
+        ge.performMoveFromNotation(game, '#2-D1');
+        ge.performMoveFromNotation(game, 'D4-D1');
+        ge.performMoveFromNotation(game, '#2-B4');
+        ge.performMoveFromNotation(game, '#5-D4');
+        ge.performMoveFromNotation(game, 'A3-D4');
+        ge.performMoveFromNotation(game, '#6-B4');
+        ge.performMoveFromNotation(game, 'A4-B4');
+        ge.performMoveFromNotation(game, 'A2-B2');
+        ge.performMoveFromNotation(game, '#3-A4');
+        ge.performMoveFromNotation(game, 'B1-A4');
+        ge.performMoveFromNotation(game, 'B4-C2');
+        ge.performMoveFromNotation(game, 'A4-B1');
+
+        expect(game.state.status).toEqual(GameStatus.END);
+        expect(() => ge.performMoveFromNotation(game, 'A4-B3'))
+        .toThrow('Invalid move: The game is over.');
+        expect(game.state.sequences).toHaveLength(1);
+        expect(game.state.sequences[0].every(location => 
+            game.board[location.y][location.x].peek().player === Player.BLACK)).toBeTruthy();
+        
+        expect(game.state.winner).toEqual(Player.BLACK);
+        expect(game.moves.length).toEqual(30);
+        expect(game.boardHistory.length).toEqual(31);
+        expect(game.externalStackHistory.length).toEqual(31);
+        expect(game.boardHistory[13]).toEqual(BigInt('2007365652462324544845'));
+        expect(game.externalStackHistory[13]).toEqual(BigInt(119085174));
+    });
+    
+    it('simulates draw by repetition', () => {
+        const gameConfig: GameConfig = {
+            boardSize: 4,
+            gobbletSize: 3,
+            gobbletsPerSize: 3
+        }
+        const game = ge.createGame(gameConfig);
+        ge.performMoveFromNotation(game, '#1-A1');
+        ge.performMoveFromNotation(game, '#4-B3');
+        ge.performMoveFromNotation(game, '#1-A2');
+        ge.performMoveFromNotation(game, 'B3-C3');
+        ge.performMoveFromNotation(game, 'A1-B2');
+        ge.performMoveFromNotation(game, 'C3-B3');
+        ge.performMoveFromNotation(game, 'B2-A1');
+        ge.performMoveFromNotation(game, 'B3-B4');
+        ge.performMoveFromNotation(game, 'A1-B2');
+        ge.performMoveFromNotation(game, 'B4-B3');
+        ge.performMoveFromNotation(game, 'B2-A1');
+
+        expect(game.state.status).toEqual(GameStatus.REPETITION_DRAW);
+        expect(game.state.sequences).toHaveLength(0);
+        expect(game.state.winner).toBeNull();
+        expect(game.moves.length).toEqual(11);
+        expect(game.boardHistory.length).toEqual(12);
+        expect(game.externalStackHistory.length).toEqual(12);
+        expect(() => ge.performMoveFromNotation(game, 'B3-C3'))
+        .toThrow('Invalid move: The game is over.');
     });
 
     it('can generate all possible board cells from a number for an unit board', () => {
