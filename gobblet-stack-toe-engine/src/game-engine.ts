@@ -108,6 +108,71 @@ export default class GameEngine {
             }
         }
     }
+
+    /**
+     * Calculates all valid moves for the current player in the game.
+     * Valid moves include moving gobblets from the board to the board,
+     * and moving gobblets from the external stack to the board.
+     *
+     * @param game - The current game.
+     * @returns An array of move notation strings representing all valid moves for the current player.
+     */
+    public static getValidMovesNotations(game: Game): string[] {
+        return GameEngine.getValidMoves(game).map(move => move.toNotation());
+    }
+
+    /**
+     * Calculates all valid moves for the current player in the game.
+     * Valid moves include moving gobblets from the board to the board,
+     * and moving gobblets from the external stack to the board.
+     *
+     * @param game - The current game.
+     * @returns An array of Move objects representing all valid moves for the current player.
+     */
+    public static getValidMoves(game: Game): Move[] {
+        const moves: Move[] = [];
+        if(GameStatus.LIVE !== game.state.status) {
+            return [];
+        }
+
+        // find possible board to board moves
+        game.board.forEach((sourceRow, sy) => 
+            sourceRow.forEach((sourceCell, sx) => {
+                if(!sourceCell.isEmpty() && sourceCell.peek().player === game.turn) {
+                    game.board.forEach((targetRow, ty) =>
+                        targetRow.forEach((targetCell, tx) => {
+                            if(!(sy === ty && sx === tx) && targetCell.canPush(sourceCell.peek())) {
+                                moves.push(new Move(
+                                    new Location(true, sx, sy),
+                                    new Location(true, tx, ty)
+                                ));
+                            }
+                        })
+                    );
+                }
+            })
+        );
+
+        // find possible external stack to board moves
+        game.externalStack.forEach((sourceCell, sy) => {
+            if(!sourceCell.isEmpty() && sourceCell.peek().player === game.turn) {
+                game.board.forEach((targetRow, ty) =>
+                    targetRow.forEach((targetCell, tx) => {
+                        if(targetCell.canPush(sourceCell.peek()) 
+                            && GameEngine.allowDirectCapture(game.board, game.turn, new Location(true, tx, ty), game.config.boardSize - 1)
+                        ) {
+                            moves.push(new Move(
+                                new Location(false, null, sy),
+                                new Location(true, tx, ty)
+                            ));
+                        }
+                    })
+                );
+            }
+        });
+
+        return moves;   
+    }
     
     /**
      * Calculates the board number from the current game board.
@@ -333,7 +398,7 @@ export default class GameEngine {
             return {valid: false, reason: 'You can only capture the gobblet by the larger gobblet.'};
         }
         if (!source.board && !targetStack.isEmpty()) {
-            if (!this.allowDirectCapture(game.board, game.turn, target, boardSize - 1)) {
+            if (!GameEngine.allowDirectCapture(game.board, game.turn, target, boardSize - 1)) {
                 return {valid: false, reason: `You can capture an opponent's gobblet on board by a larger gobblet only from board. Capturing directly by gobblet from external stack is only permitted when opponent has ${boardSize - 1} gobblets in a row, column or diagonal.`};
             }
         }
@@ -356,8 +421,8 @@ export default class GameEngine {
         const targetStack: SizedStack<Gobblet> = board[target.y][target.x];
         const opponent: Player = player === Player.WHITE? Player.BLACK : Player.WHITE;
 
-        // player can direct capture own gobblet
-        if (targetStack.peek() && targetStack.peek().player === player) {
+        // player can direct capture empty cell or own gobblet
+        if (targetStack.isEmpty() || (targetStack.peek() && targetStack.peek().player === player)) {
             return true;
         }
 

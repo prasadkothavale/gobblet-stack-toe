@@ -1,5 +1,5 @@
 import GameEngine from './game-engine';
-import { GameConfig, Player, Location, Move, GameStatus, Gobblet, Constants } from './interface';
+import { GameConfig, Player, Location, Move, GameStatus, Gobblet, Constants, Game } from './interface';
 import SizedStack from './sized-stack';
 
 describe('Game engine', () => {
@@ -23,40 +23,54 @@ describe('Game engine', () => {
         expect(() => ge.performMoveFromNotation(game, '#1-D5'))
         .toThrow('Invalid move: Source or target locations are out of bounds.');
 
+        expect(ge.getValidMovesNotations(game)).toContain('#1-D4');
         ge.performMoveFromNotation(game, '#1-D4');
         expect(game.turn).toEqual(Player.BLACK);
 
+        expect(ge.getValidMovesNotations(game)).toContain('#4-A1');
         ge.performMoveFromNotation(game, '#4-A1');
         expect(game.turn).toEqual(Player.WHITE);
 
+        expect(ge.getValidMovesNotations(game)).not.toContain('D4-D4');
         expect(() => ge.performMoveFromNotation(game, 'D4-D4'))
         .toThrow('Invalid move: Source and target locations are the same.');
         
+        expect(ge.getValidMovesNotations(game)).not.toContain('D4-#1');
         expect(() => ge.performMoveFromNotation(game, 'D4-#1'))
         .toThrow('Invalid move: You cannot remove gobblet from the board.');
         
+        expect(ge.getValidMovesNotations(game)).not.toContain('A1-A2');
         expect(() => ge.performMoveFromNotation(game, 'A1-A2'))
         .toThrow('Invalid move: The gobblet does not belong to the current player.');
         
+        expect(ge.getValidMovesNotations(game)).not.toContain('A2-A1');
         expect(() => ge.performMoveFromNotation(game, 'A2-A1'))
         .toThrow('Invalid move: The source location is empty.');
         
+        expect(ge.getValidMovesNotations(game)).not.toContain('#1-A1');
         expect(() => ge.performMoveFromNotation(game, '#1-A1'))
         .toThrow('Invalid move: You can only capture the gobblet by the larger gobblet.');
 
+        expect(ge.getValidMovesNotations(game)).toContain('#1-A4');
         ge.performMoveFromNotation(game, '#1-A4');
 
+        expect(ge.getValidMovesNotations(game)).not.toContain('#5-A4');
         expect(() => ge.performMoveFromNotation(game, '#5-A4'))
         .toThrow('Invalid move: You can capture an opponent\'s gobblet on board by a larger gobblet only from board. Capturing directly by gobblet from external stack is only permitted when opponent has 3 gobblets in a row, column or diagonal.');
 
+        expect(ge.getValidMovesNotations(game)).toContain('#4-D1');
         ge.performMoveFromNotation(game, '#4-D1');
         
+        expect(ge.getValidMovesNotations(game)).not.toContain('#4-B4');
         expect(() => ge.performMoveFromNotation(game, '#4-B4'))
         .toThrow('Invalid move: The gobblet does not belong to the current player.');
 
+        expect(ge.getValidMovesNotations(game)).toContain('#1-B4');
         ge.performMoveFromNotation(game, '#1-B4');
+        expect(ge.getValidMovesNotations(game)).toContain('#5-B4');
         ge.performMoveFromNotation(game, '#5-B4');
         
+        expect(ge.getValidMovesNotations(game)).not.toContain('#1-C4');
         expect(() => ge.performMoveFromNotation(game, '#1-C4'))
         .toThrow('Invalid move: The source location is empty.');
 
@@ -65,9 +79,13 @@ describe('Game engine', () => {
         ge.performMoveFromNotation(game, '#2-B1');
         ge.performMoveFromNotation(game, '#5-C1');
         ge.performMoveFromNotation(game, '#3-A4');
+        expect(ge.getValidMovesNotations(game)).toHaveLength(56);
+        expect(ge.getValidMovesNotations(game)).toContain('B4-B1');
+
         ge.performMoveFromNotation(game, 'B4-B1');
         expect(game.state.status).toEqual(GameStatus.DOUBLE_DRAW);
 
+        expect(ge.getValidMovesNotations(game)).not.toContain('#1-C4');
         expect(() => ge.performMoveFromNotation(game, '#1-C4'))
         .toThrow('Invalid move: The game is over.');
         
@@ -135,6 +153,7 @@ describe('Game engine', () => {
         expect(game.externalStackHistory.length).toEqual(31);
         expect(game.boardHistory[13]).toEqual(BigInt('2007365652462324544845'));
         expect(game.externalStackHistory[13]).toEqual(BigInt(119085174));
+        expect(ge.getValidMovesNotations(game)).toHaveLength(0);
     });
     
     it('simulates draw by repetition', () => {
@@ -266,6 +285,29 @@ describe('Game engine', () => {
         for (let i: number = 0; i < randomTests; i++) {
             testExternalStackToNumberConversion(BigInt(Math.round(Number(max) * Math.random())) , gc);
         };
+    });
+
+    it('can provide valid possible moves', () => {
+        const gc: GameConfig = {
+            boardSize: 4,
+            gobbletSize: 3,
+            gobbletsPerSize: 3
+        }
+        const game: Game = ge.createGame(gc);
+        expect(ge.getValidMoves(game)).toHaveLength(48);
+        expect(ge.getValidMovesNotations(game)).toContain('#1-A1');
+        ge.performMoveFromNotation(game, '#1-A1');
+
+        expect(ge.getValidMovesNotations(game)).not.toContain('#1-A1');
+        expect(ge.getValidMovesNotations(game)).toContain('#4-A2');
+        
+        ge.performMoveFromNotation(game, '#4-A2');
+        expect(ge.getValidMovesNotations(game)).not.toContain('A1-A2');
+        expect(ge.getValidMovesNotations(game)).not.toContain('#5-B1');
+        expect(ge.getValidMovesNotations(game)).toContain('A1-A3');
+
+        ge.performMoveFromNotation(game, '#1-A3');
+        expect(ge.getValidMovesNotations(game)).not.toContain('#5-A3');
     });
 
     const testBoardToNumberConversion = (x: bigint, gc: GameConfig) => {
