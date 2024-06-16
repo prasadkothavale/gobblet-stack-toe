@@ -4,13 +4,13 @@ describe('Sorted array', () => {
 
     test('can insert numbers and search', () => {
         const sa: SortedArray<number> = new SortedArray((a: number, b: number) => a - b);
-        sa.add(3);
-        sa.add(5);
-        sa.add(1);
+        sa.push(3);
+        sa.push(5);
+        sa.push(1);
         expect(sa.toArray()).toEqual([1, 3, 5]);
         expect(sa.includes(4)).toBeFalsy();
-        sa.add(2);
-        sa.add(4);
+        sa.push(2);
+        sa.push(4);
         expect(sa.toArray()).toEqual([1, 2, 3, 4, 5]);
         expect(sa.includes(2)).toBeTruthy();
     });
@@ -29,7 +29,7 @@ describe('Sorted array', () => {
         const expectedAnswers: boolean[] = search.map(number => numbers.includes(number));
         
         const split = new Date().getTime();
-        numbers.forEach(number => sa.add(number));
+        numbers.forEach(number => sa.push(number));
         const actualAnswers: boolean[] = search.map(number => sa.includes(number));
         const end = new Date().getTime();
     

@@ -11,7 +11,7 @@ export default class SortedArray<T> {
         return this.array.slice();
     }
 
-    public add(item: T): void {
+    public push(item: T): void {
         if (this.array.length === 0) {
             this.array.push(item);
             return;
