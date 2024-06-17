@@ -15,6 +15,7 @@ describe("Game engine functional test", () => {
         let blackWins = 0;
         let repetitionDraw = 0;
         let doubleDraw = 0;
+        let movesPlayed = 0;
 
         for (let i: number = 0; i < totalGames; i++) {
             const game: Game = ge.createGame(gc);
@@ -22,6 +23,7 @@ describe("Game engine functional test", () => {
                 const moves: string[] = GameEngine.getValidMovesNotations(game);
                 const randomMove: string = moves[Math.round(Math.random() * (moves.length - 1))];
                 ge.performMoveFromNotation(game, randomMove);
+                movesPlayed++;
             }
             
             switch(game.state.status) {
@@ -43,6 +45,6 @@ describe("Game engine functional test", () => {
             }
         }
 
-        console.log(`Games execution status:\n=======================\nwhite wins: ${whiteWins}\nblack wins: ${blackWins}\ndraw by repetition: ${repetitionDraw}\ndouble draw: ${doubleDraw}\n========================`);
+        console.log(`Games execution status:\n=======================\nwhite wins: ${whiteWins}\nblack wins: ${blackWins}\ndraw by repetition: ${repetitionDraw}\ndouble draw: ${doubleDraw}\naverage moves: ${movesPlayed/totalGames}\n========================`);
     });
 });
