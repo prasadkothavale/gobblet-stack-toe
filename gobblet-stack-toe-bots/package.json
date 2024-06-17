@@ -1,5 +1,5 @@
 {
-  "name": "gobblet-stack-toe-bots",
+  "name": "@aehe/gobblet-stack-toe-bots",
   "version": "1.0.0",
   "description": "Contains bots created for gobblet-stack-toe game",
   "main": "dist/index.js",

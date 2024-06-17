@@ -1,5 +1,5 @@
 {
-    "name": "gobblet-stack-toe",
+    "name": "@aehe/gobblet-stack-toe",
     "version": "1.0.0",
     "description": "gobblet-stack-toe npm workspaces",
     "workspaces": ["gobblet-stack-toe-bots", "gobblet-stack-toe-engine","gobblet-stack-toe-server", "gobblet-stack-toe-ui"],

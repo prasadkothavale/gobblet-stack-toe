@@ -1,5 +1,5 @@
 {
-  "name": "gobblet-stack-toe-server",
+  "name": "@aehe/gobblet-stack-toe-server",
   "version": "1.0.0",
   "private": true,
   "scripts": {

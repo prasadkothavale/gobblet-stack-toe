@@ -1,5 +1,5 @@
 {
-  "name": "gobblet-stack-toe-desktop",
+  "name": "@aehe/gobblet-stack-toe-desktop",
   "version": "1.0.0",
   "description": "gobblet-stack-toe desktop app",
   "main": "main.js",
