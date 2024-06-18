@@ -1,5 +1,5 @@
 {
-  "name": "@aehe/gobblet-stack-toe-engine",
+  "name": "@aehe-games/gobblet-stack-toe-engine",
   "version": "1.0.0",
   "description": "gobblet-stack-toe game engine containing core logic and rules for the game",
   "main": "dist/index.js",
