@@ -82,26 +82,6 @@ export default class Simulator {
             const game: Game = GameEngine.createGame(this.gameConfig);
             let turn = execution % 2 === 0? this.bot1 : this.bot2;
             let next = execution % 2 === 0? this.bot2 : this.bot1;
-            const players = {
-                [Player.WHITE]: {
-                    bot: turn, 
-                    playerResult: {
-                        wins: 0,
-                        losses: 0,
-                        repetitionDraw: 0,
-                        doubleDraw: 0
-                    }
-                },
-                [Player.BLACK]: {
-                    bot: next,
-                    playerResult: {
-                        wins: 0,
-                        losses: 0,
-                        repetitionDraw: 0,
-                        doubleDraw: 0
-                    }
-                }
-            };
 
             while(game.state.status === GameStatus.LIVE) {
                 GameEngine.performMove(game, turn.playMove(game));
@@ -116,25 +96,44 @@ export default class Simulator {
             switch(game.state.status) {
                 case GameStatus.END:
                     if (game.state.winner === Player.WHITE){
-                        players[Player.WHITE].playerResult.wins++;
-                        players[Player.BLACK].playerResult.losses++;
+                        if(execution % 2 === 0){
+                            result.bot1.white.wins++
+                            result.bot2.black.losses++;
+                        } else {
+                            result.bot1.black.losses++
+                            result.bot2.white.wins++;
+                        }
                     } else {
-                        players[Player.WHITE].playerResult.losses++;
-                        players[Player.BLACK].playerResult.wins++;
+                        if(execution % 2 === 0){
+                            result.bot1.white.losses++
+                            result.bot2.black.wins++;
+                        } else {
+                            result.bot1.black.wins++
+                            result.bot2.white.losses++;
+                        }
                     }
                 break;
                 case GameStatus.DOUBLE_DRAW:
-                    players[Player.WHITE].playerResult.doubleDraw++;
-                    players[Player.BLACK].playerResult.doubleDraw++;
+                    if(execution % 2 === 0){
+                        result.bot1.white.doubleDraw++;
+                        result.bot2.black.doubleDraw++;
+                    } else {
+                        result.bot1.black.doubleDraw++;
+                        result.bot2.white.doubleDraw++;
+                    }
                 break;
                 case GameStatus.REPETITION_DRAW:
-                    players[Player.WHITE].playerResult.repetitionDraw++;
-                    players[Player.BLACK].playerResult.repetitionDraw++;
+                    if(execution % 2 === 0){
+                        result.bot1.white.repetitionDraw++;
+                        result.bot2.black.repetitionDraw++;
+                    } else {
+                        result.bot1.black.repetitionDraw++;
+                        result.bot2.white.repetitionDraw++;
+                    }
                 break;
                 default:
                     throw new Error(`Invalid game status: ${game.state.status}`);
             }
-            //TODO sum up this result with previous
 
         }
         this.bot1.unload? this.bot1.unload() : undefined;
