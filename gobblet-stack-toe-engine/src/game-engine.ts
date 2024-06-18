@@ -222,10 +222,9 @@ export default class GameEngine {
     public static getBoard(boardNumber: bigint, config: GameConfig): SizedStack<Gobblet>[][] {
         const board: SizedStack<Gobblet>[][] = GameEngine.getInitialBoard(config);
         let _bn: bigint = boardNumber;
-        board.forEach((row: SizedStack<Gobblet>[], y: number) => {
-            row.forEach((cell: SizedStack<Gobblet>, x: number) => {
+        board.forEach((row: SizedStack<Gobblet>[]) => {
+            row.forEach((cell: SizedStack<Gobblet>) => {
                 for(let size: number = 0; size < config.gobbletSize; size++) {
-                    const position = size + x * config.gobbletSize + y * row.length;
                     const unit = _bn % BigInt(Constants.BASE);
                     _bn -= unit;
                     _bn /= BigInt(Constants.BASE);
@@ -274,12 +273,11 @@ export default class GameEngine {
     public static getExternalStack(externalStackNumber: bigint, config: GameConfig): SizedStack<Gobblet>[] {
         const externalStack: SizedStack<Gobblet>[] = [];
         let _en: bigint = externalStackNumber;
-        let externalStackLength: number = 2 * config.gobbletsPerSize;
+        const externalStackLength: number = 2 * config.gobbletsPerSize;
 
         for(let y = 0; y < externalStackLength; y++) {
             const cell: SizedStack<Gobblet> = new SizedStack<Gobblet>();
             for(let size: number = 0; size < config.gobbletSize; size++) {
-                const position = size + y * config.gobbletSize;
                 const unit = _en % BigInt(Constants.BASE);
                 _en -= unit;
                 _en /= BigInt(Constants.BASE);
@@ -306,7 +304,7 @@ export default class GameEngine {
 
         // check rows
         board.forEach((row: SizedStack<Gobblet>[], y) => {
-            let sequence: Location[] = [];
+            const sequence: Location[] = [];
             const sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
             row.forEach((cell: SizedStack<Gobblet>, x) => 
                 GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences));
@@ -314,8 +312,8 @@ export default class GameEngine {
 
         // check columns
         for (let x = 0; x < boardSize; x++) {
-            let sequence: Location[] = [];
-            let sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
+            const sequence: Location[] = [];
+            const sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
             for (let y = 0; y < boardSize; y++) {
                 const cell: SizedStack<Gobblet> = board[y][x];
                 GameEngine.checkCell(cell, sequencePlayer, sequence, x, y, sequenceSize, playerSequences);
@@ -324,14 +322,14 @@ export default class GameEngine {
 
         // check diagonals
         for (let i = 0; i < boardSize; i++) {
-            let sequence: Location[] = [];
-            let sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
+            const sequence: Location[] = [];
+            const sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
             const cell: SizedStack<Gobblet> = board[i][i];
             GameEngine.checkCell(cell, sequencePlayer, sequence, i, i, sequenceSize, playerSequences);
         }
         for (let i = 0; i < boardSize; i++) {
-            let sequence: Location[] = [];
-            let sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
+            const sequence: Location[] = [];
+            const sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
             const cell: SizedStack<Gobblet> = board[i][boardSize - i - 1];
             GameEngine.checkCell(cell, sequencePlayer, sequence, i, boardSize - i - 1, sequenceSize, playerSequences);
         }
