@@ -1,7 +1,7 @@
 import { Game, GameConfig, GameStatus, Player } from '@aehe-games/gobblet-stack-toe-engine/src/interface';
 import GameEngine from '@aehe-games/gobblet-stack-toe-engine/src/game-engine';
 import Bot from '../bots/bot';
-import SimulationResult from './simulation-result';
+import SimulationResult, {PlayerResult, BotResult} from './simulation-result';
 
 export default class Simulator {
 
@@ -45,39 +45,14 @@ export default class Simulator {
         this.bot2.onLoad? this.bot2.onLoad(this.gameConfig) : undefined;
     }
 
+    /**
+     * This method runs the specified number of simulations between two bots.
+     *
+     * @returns {SimulationResult} - The result of the simulations.
+     */
     public runSimulations(): SimulationResult {
-        const result: SimulationResult = {
-            bot1: {
-                name: this.bot1Name,
-                white: {
-                    wins: 0,
-                    losses: 0,
-                    repetitionDraw: 0,
-                    doubleDraw: 0
-                }, 
-                black: {
-                    wins: 0,
-                    losses: 0,
-                    repetitionDraw: 0,
-                    doubleDraw: 0
-                }
-            },
-            bot2: {
-                name: this.bot2Name,
-                white: {
-                    wins: 0,
-                    losses: 0,
-                    repetitionDraw: 0,
-                    doubleDraw: 0
-                }, 
-                black: {
-                    wins: 0,
-                    losses: 0,
-                    repetitionDraw: 0,
-                    doubleDraw: 0
-                }
-            }
-        }
+        const result: SimulationResult = this.getInitialSimulationResult();
+
         for (let execution = 0; execution < this.simulations; execution++) {
             const game: Game = GameEngine.createGame(this.gameConfig);
             let turn = execution % 2 === 0? this.bot1 : this.bot2;
@@ -93,43 +68,19 @@ export default class Simulator {
             this.bot1.onGameEnd? this.bot1.onGameEnd(game) : undefined;
             this.bot2.onGameEnd? this.bot2.onGameEnd(game) : undefined;
 
+            const whitePlayerResult: PlayerResult = execution % 2 === 0 ? result.bot1.white : result.bot2.white;
+            const blackPlayerResult: PlayerResult = execution % 2 === 0 ? result.bot2.black : result.bot1.black;
             switch(game.state.status) {
                 case GameStatus.END:
-                    if (game.state.winner === Player.WHITE){
-                        if(execution % 2 === 0){
-                            result.bot1.white.wins++
-                            result.bot2.black.losses++;
-                        } else {
-                            result.bot1.black.losses++
-                            result.bot2.white.wins++;
-                        }
-                    } else {
-                        if(execution % 2 === 0){
-                            result.bot1.white.losses++
-                            result.bot2.black.wins++;
-                        } else {
-                            result.bot1.black.wins++
-                            result.bot2.white.losses++;
-                        }
-                    }
+                    game.state.winner === Player.WHITE ? 
+                        this.updateWinner(whitePlayerResult, blackPlayerResult) :
+                        this.updateWinner(blackPlayerResult, whitePlayerResult);
                 break;
                 case GameStatus.DOUBLE_DRAW:
-                    if(execution % 2 === 0){
-                        result.bot1.white.doubleDraw++;
-                        result.bot2.black.doubleDraw++;
-                    } else {
-                        result.bot1.black.doubleDraw++;
-                        result.bot2.white.doubleDraw++;
-                    }
+                    this.updateDoubleDraw(whitePlayerResult, blackPlayerResult);
                 break;
                 case GameStatus.REPETITION_DRAW:
-                    if(execution % 2 === 0){
-                        result.bot1.white.repetitionDraw++;
-                        result.bot2.black.repetitionDraw++;
-                    } else {
-                        result.bot1.black.repetitionDraw++;
-                        result.bot2.white.repetitionDraw++;
-                    }
+                    this.updateRepetitionDraw(whitePlayerResult, blackPlayerResult);
                 break;
                 default:
                     throw new Error(`Invalid game status: ${game.state.status}`);
@@ -140,6 +91,40 @@ export default class Simulator {
         this.bot2.unload? this.bot2.unload() : undefined;
 
         return result;
+    }
+
+    private getInitialPlayerResult(): PlayerResult {
+        return {wins: 0, losses: 0, repetitionDraw: 0, doubleDraw: 0};
+    }
+
+    private getInitialBotResult(name): BotResult {
+        return {
+            name,
+            white: this.getInitialPlayerResult(),
+            black: this.getInitialPlayerResult()
+        };
+    }
+
+    private getInitialSimulationResult(): SimulationResult {
+        return {
+            bot1: this.getInitialBotResult(this.bot1Name),
+            bot2: this.getInitialBotResult(this.bot2Name)
+        };
+    }
+
+    private updateWinner(winner: PlayerResult, loser: PlayerResult): void {
+        winner.wins++
+        loser.losses++
+    }
+
+    private updateRepetitionDraw(p1: PlayerResult, p2: PlayerResult): void {
+        p1.repetitionDraw++
+        p2.repetitionDraw++
+    }
+
+    private updateDoubleDraw(p1: PlayerResult, p2: PlayerResult): void {
+        p1.doubleDraw++
+        p2.doubleDraw++
     }
 }
 
