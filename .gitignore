@@ -168,3 +168,6 @@ node_modules/
 
 #Jest coverage
 coverage/
+
+# Data files
+gobblet-stack-toe-bots/src/data/
