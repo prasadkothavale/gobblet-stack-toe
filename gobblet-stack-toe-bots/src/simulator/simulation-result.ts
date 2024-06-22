@@ -1,3 +1,5 @@
+import { Player, GameStatus } from "@aehe-games/gobblet-stack-toe-engine/src/interface";
+
 export default interface SimulationResult {
     bot1: BotResult;
     bot2: BotResult;
@@ -14,6 +16,14 @@ export interface PlayerResult {
     losses: number;
     repetitionDraw: number;
     doubleDraw: number;
+}
+
+export interface SimulatedGame {
+    winner: Player;
+    gameStatus: GameStatus;
+    boardHistory: string[];
+    externalStackHistory: string[];
+    moves: string[]
 }
 
 export const logResult = (result: SimulationResult) => {

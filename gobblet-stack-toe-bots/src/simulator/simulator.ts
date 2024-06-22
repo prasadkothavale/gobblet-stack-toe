@@ -2,6 +2,7 @@ import { Game, GameConfig, GameStatus, Player } from '@aehe-games/gobblet-stack-
 import GameEngine from '@aehe-games/gobblet-stack-toe-engine/src/game-engine';
 import Bot from '../bots/bot';
 import SimulationResult, {PlayerResult, BotResult} from './simulation-result';
+import {writeGameNdJson} from '../utils/file-utils';
 
 export default class Simulator {
 
@@ -23,13 +24,15 @@ export default class Simulator {
     bot1Name: string;
     bot2Name: string;
     gameConfig: GameConfig;
+    outputFile: string;
 
-    constructor(gameMode: string, simulations: number, bot1: Bot, bot2: Bot, bot1Name: string, bot2Name: string) {
+    constructor(gameMode: string, simulations: number, bot1: Bot, bot2: Bot, bot1Name: string, bot2Name: string, outputFile: string) {
         this.simulations = simulations;
         this.bot1 = bot1;
         this.bot2 = bot2;
         this.bot1Name = bot1Name;
         this.bot2Name = bot2Name;
+        this.outputFile = outputFile;
 
         switch(gameMode) {
             case 'beginner':
@@ -86,6 +89,8 @@ export default class Simulator {
                     throw new Error(`Invalid game status: ${game.state.status}`);
             }
 
+            this.writeFile(game);
+
         }
         this.bot1.unload? this.bot1.unload() : undefined;
         this.bot2.unload? this.bot2.unload() : undefined;
@@ -97,7 +102,7 @@ export default class Simulator {
         return {wins: 0, losses: 0, repetitionDraw: 0, doubleDraw: 0};
     }
 
-    private getInitialBotResult(name): BotResult {
+    private getInitialBotResult(name: string): BotResult {
         return {
             name,
             white: this.getInitialPlayerResult(),
@@ -125,6 +130,12 @@ export default class Simulator {
     private updateDoubleDraw(p1: PlayerResult, p2: PlayerResult): void {
         p1.doubleDraw++
         p2.doubleDraw++
+    }
+
+    private writeFile(game: Game): void {
+        if(this.outputFile && this.outputFile.trim().length > 0) {
+            writeGameNdJson(this.outputFile, game);
+        }
     }
 }
 
