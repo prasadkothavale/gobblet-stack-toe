@@ -169,5 +169,6 @@ node_modules/
 #Jest coverage
 coverage/
 
-# Data files
+# Data and downloaded files
 gobblet-stack-toe-bots/src/data/
+gobblet-stack-toe-bots/src/lib/

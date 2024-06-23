@@ -10,7 +10,9 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
-    "simulation": "ts-node src/simulator/simulation.ts"
+    "postinstall": "node post-install.js",
+    "simulation": "ts-node src/simulator/simulation.ts",
+    "training": "ts-node src/simulator/training.ts"
   },
   "repository": {
     "type": "git",

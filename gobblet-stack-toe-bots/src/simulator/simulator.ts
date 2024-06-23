@@ -3,20 +3,9 @@ import GameEngine from '@aehe-games/gobblet-stack-toe-engine/src/game-engine';
 import Bot from '../bots/bot';
 import SimulationResult, {PlayerResult, BotResult} from './simulation-result';
 import {writeGameNdJson} from '../utils/file-utils';
+import getGameConfig from '../utils/game-config-utils';
 
 export default class Simulator {
-
-    classic: GameConfig = {
-        boardSize: 4,
-        gobbletSize: 3,
-        gobbletsPerSize: 3
-    };
-
-    beginner: GameConfig = {
-        boardSize: 3,
-        gobbletSize: 3,
-        gobbletsPerSize: 2
-    };
 
     simulations: number;
     bot1: Bot;
@@ -34,16 +23,7 @@ export default class Simulator {
         this.bot2Name = bot2Name;
         this.outputFile = outputFile;
 
-        switch(gameMode) {
-            case 'beginner':
-                this.gameConfig = this.beginner;
-                break;
-            case 'classic':
-                this.gameConfig = this.classic;
-                break;
-            default:
-                throw new Error(`Invalid game mode: ${gameMode}`);
-        }
+        this.gameConfig = getGameConfig(gameMode);
         this.bot1.onLoad? this.bot1.onLoad(this.gameConfig) : undefined;
         this.bot2.onLoad? this.bot2.onLoad(this.gameConfig) : undefined;
     }

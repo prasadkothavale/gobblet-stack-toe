@@ -6,9 +6,9 @@ import { logResult } from './simulation-result';
 const [_tsPath, _filePath, mode, simulationsStr, bot1Name, bot2Name, outputFile] = process.argv;
 
 const errorMessage = `
-Invalid arguments provided: ${process.argv}
-${JSON.stringify({mode, simulationsStr, bot1Name, bot2Name})}
-Usage: npm run simulation -- <beginner|classic> <simulations> <bot1> <bot2> [output file]
+Invalid arguments provided: ${process.argv?.slice(2)}
+
+Usage:   npm run simulation -- <beginner|classic> <simulations> <bot1> <bot2> [output file]
 Example: npm run simulations -- classic 1000 random-bot random-bot random-1000.ndjson
 `
 

@@ -16,6 +16,11 @@ export async function createFileIfNotExists(filePath: string, fileName: string):
     }
 }
 
+export async function writeNuralNetwork(name: string, network: any): Promise<void> {
+    const content = JSON.stringify(network.toJSON());
+    return fs.promises.writeFile(path.join(__dirname, '..', 'data', name), content);
+}
+
 export async function appendFile(filePath: string, fileName: string, content: string): Promise<void> {
     await createFileIfNotExists(filePath, fileName);
     await fs.promises.appendFile(path.join(filePath, fileName), content);

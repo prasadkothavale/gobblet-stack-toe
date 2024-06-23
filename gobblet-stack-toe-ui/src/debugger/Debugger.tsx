@@ -6,15 +6,16 @@ import GobbletUI from '../game/GobbletUI';
 
 let game: Game;
 const gameConfig: GameConfig = {
-    boardSize: 4,
+    boardSize: 3,
     gobbletSize: 3,
-    gobbletsPerSize: 3
+    gobbletsPerSize: 2
 }
 
 export default function Debugger() {
 
     const [board, setBoard] = useState([]);
     const [moves, setMoves] = useState([]);
+    const [movesJsonStr, setMovesJsonStr] = useState([]);
     const [movesText, setMovesText] = useState();
     const [lastMove, setLastMove] = useState();
     const [movePointer, setMovePointer] = useState(-1);
@@ -96,6 +97,8 @@ export default function Debugger() {
         Last move: {lastMove}, Turn: {game?.turn}
         <br/>
         <br/>
-        <textarea rows={20} value={movesText} onChange={(event) => updateMoves(event.target.value)}></textarea>
+        <textarea rows={20} value={movesText} onChange={(event) => updateMoves(event.target.value)}></textarea><br/>
+        <input type="text" value={movesJsonStr} onChange={(event) => setMovesJsonStr(event.target.value)}/>
+        <button onClick={() => setMoves(JSON.parse(movesJsonStr))}>Load</button>
     </div>;
 }
