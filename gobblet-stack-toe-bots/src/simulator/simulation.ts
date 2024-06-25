@@ -32,5 +32,4 @@ if (!bot2) {
 }
 
 const simulator = new Simulator(mode, simulations, bot1, bot2, bot1Name, bot2Name, outputFile);
-const result = simulator.runSimulations();
-logResult(result);
+const result = simulator.runSimulations().then(result => logResult(result));

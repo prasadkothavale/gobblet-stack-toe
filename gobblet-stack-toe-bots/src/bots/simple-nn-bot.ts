@@ -63,17 +63,22 @@ export default class SimpleNNBot implements Bot {
     }
 
     private getMoveScore(move: Move, game: Game): number {
+        const source = move.source;
+        const target = move.target;
         const board: SizedStack<Gobblet>[][] = GameEngine.getBoard(GameEngine.getBoardNumber(game.board, game.config), game.config);
         const externalStack: SizedStack<Gobblet>[] = GameEngine.getExternalStack(GameEngine.getExternalStackNumber(game.externalStack, game.config), game.config);
+        const sourceStack: SizedStack<Gobblet> = source.board ? board[source.y][source.x] : externalStack[source.y];
+        const targetStack: SizedStack<Gobblet> = board[target.y][target.x];
+        targetStack.push(sourceStack.pop());
 
         const input: number[] = [];
         board.forEach((row: SizedStack<Gobblet>[]) => {
             row.forEach((cell: SizedStack<Gobblet>) => {
-                input.push(cell.isEmpty() ? 0.5 : cell.peek().player === Player.WHITE? 0 : 1);
+                input.push(cell.isEmpty() ? 0 : cell.peek().player === Player.WHITE? -1 : 1);
             })
         });
         externalStack.forEach((cell: SizedStack<Gobblet>) => {
-            input.push(cell.isEmpty() ? 0.5 : cell.peek().player === Player.WHITE? 0 : 1);
+            input.push(cell.isEmpty() ? 0 : cell.peek().player === Player.WHITE? -1 : 1);
         }); 
 
         return this.network.run(input);
