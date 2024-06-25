@@ -33,7 +33,7 @@ export default class Simulator {
      *
      * @returns {SimulationResult} - The result of the simulations.
      */
-    public runSimulations(): SimulationResult {
+    public async runSimulations(): Promise<SimulationResult> {
         const result: SimulationResult = this.getInitialSimulationResult();
 
         for (let execution = 0; execution < this.simulations; execution++) {
@@ -69,7 +69,7 @@ export default class Simulator {
                     throw new Error(`Invalid game status: ${game.state.status}`);
             }
 
-            this.writeFile(game);
+            await this.writeFile(game);
 
         }
         this.bot1.unload? this.bot1.unload() : undefined;
@@ -112,9 +112,9 @@ export default class Simulator {
         p2.doubleDraw++
     }
 
-    private writeFile(game: Game): void {
+    private async writeFile(game: Game): Promise<void> {
         if(this.outputFile && this.outputFile.trim().length > 0) {
-            writeGameNdJson(this.outputFile, game);
+            await writeGameNdJson(this.outputFile, game);
         }
     }
 }
