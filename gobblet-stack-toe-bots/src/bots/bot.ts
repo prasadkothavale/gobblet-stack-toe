@@ -40,15 +40,3 @@ export default interface Bot {
      */
     unload?(): void
 }
-
-export interface Trainer {
-    
-    load(gameConfig: GameConfig, inputFile: string, outputFile: string): Promise<void>
-    
-    train(): Promise<any>
-}
-
-export interface TrainingData {
-    input: number[];
-    output: number[];
-}

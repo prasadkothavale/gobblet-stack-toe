@@ -1,14 +1,19 @@
 export default class SortedArray<T> {
     private array: T[];
-    private comparator: Function;
+    private comparator: (a: T, b: T) => number;
 
-    constructor(comparator: Function) {
+    public constructor(comparator: (a: T, b: T) => number) {
         this.comparator = comparator;
         this.array = [];
     }
 
     public toArray(): T[] {
         return this.array.slice();
+    }
+
+    public loadSortedArray(array: T[], comparator: (a: T, b: T) => number): void {
+        this.array = array;
+        this.comparator = comparator;
     }
 
     public push(item: T): void {
@@ -23,14 +28,14 @@ export default class SortedArray<T> {
             this.binarySortInsert(item, mid + 1, this.array.length);
     }
 
-    public includes(item: T): boolean {
+    public find(item: T): T | null {
         if (this.array.length === 0) {
-            return false;
+            return null;
         }
 
         const mid: number = Math.round(this.array.length / 2) - 1;
-        if (this.array[mid] === item) {
-            return true;
+        if (this.comparator(this.array[mid], item) === 0) {
+            return this.array[mid];
         }
         return this.comparator(item, this.array[mid]) < 0 ?
             this.binarySearch(item, 0, mid) :
@@ -49,14 +54,14 @@ export default class SortedArray<T> {
             this.binarySortInsert(item, mid + 1, end);
     }
 
-    private binarySearch(item: T, start: number, end: number): boolean {
+    private binarySearch(item: T, start: number, end: number): T | null {
         if (start === end) {
-            return false;
+            return null;
         }
 
         const mid: number = Math.round((start + end) / 2) - 1;
-        if (this.array[mid] === item) {
-            return true;
+        if (this.comparator(this.array[mid], item) === 0) {
+            return this.array[mid];
         }
 
         return this.comparator(item, this.array[mid]) < 0?

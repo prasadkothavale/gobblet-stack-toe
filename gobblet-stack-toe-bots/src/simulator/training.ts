@@ -1,5 +1,5 @@
 import { GameConfig } from '@aehe-games/gobblet-stack-toe-engine/src/interface';
-import Bot, { Trainer } from '../bots/bot';
+import Trainer from '../bots/trainer';
 import BotFactory from '../bots/bot-factory';
 import getGameConfig from '../utils/game-config-utils';
 const [_tsPath, _filePath, mode, trainerName, inputFile, outputFile] = process.argv;
@@ -16,7 +16,7 @@ if (!mode || !trainerName || !inputFile || !outputFile || !['beginner', 'classic
     process.exit(1);
 }
 
-const trainer: Trainer = BotFactory.createTrainer(trainerName);
+const trainer: Trainer<any> = BotFactory.createTrainer(trainerName);
 
 if (!trainer) {
     console.error(`Invalid trainer: ${trainerName}`);

@@ -8,30 +8,30 @@ describe('Sorted array', () => {
         sa.push(5);
         sa.push(1);
         expect(sa.toArray()).toEqual([1, 3, 5]);
-        expect(sa.includes(4)).toBeFalsy();
+        expect(sa.find(4)).toBeNull();
         sa.push(2);
         sa.push(4);
         expect(sa.toArray()).toEqual([1, 2, 3, 4, 5]);
-        expect(sa.includes(2)).toBeTruthy();
+        expect(sa.find(2)).toEqual(2);
     });
 
     test('random insertion and searching performance test', () => {
         const testSize = 10**4
         const numbers: bigint[] = [];
         const search: bigint[] = [];
-        const sa: SortedArray<bigint> = new SortedArray((a: bigint, b: bigint) => a - b);
+        const sa: SortedArray<bigint> = new SortedArray((a: bigint, b: bigint) => a === b? 0 : a < b ? -1 : 1);
 
-        const start = new Date().getTime();
+        //const start = new Date().getTime();
         for (let i = 0; i < testSize; i++) {
             numbers.push(BigInt(Math.round(testSize * Math.random())))
             search.push(BigInt(Math.round(testSize * Math.random())))
         }
-        const expectedAnswers: boolean[] = search.map(number => numbers.includes(number));
+        const expectedAnswers: bigint[] = search.map(number => numbers.includes(number) ? number : null);
         
-        const split = new Date().getTime();
+        //const split = new Date().getTime();
         numbers.forEach(number => sa.push(number));
-        const actualAnswers: boolean[] = search.map(number => sa.includes(number));
-        const end = new Date().getTime();
+        const actualAnswers: bigint[] = search.map(number => sa.find(number));
+        //const end = new Date().getTime();
     
 
         /*console.log([

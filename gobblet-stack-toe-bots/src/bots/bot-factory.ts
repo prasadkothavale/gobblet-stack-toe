@@ -1,21 +1,26 @@
-import Bot, { Trainer } from './bot';
+import Bot from './bot';
 import RandomBot from './random-bot';
 import SimpleNNBot from './simple-nn-bot';
-import { SimpleNNTrainer } from './simple-nn-trainer';
+import SimpleNNTrainer from './simple-nn-trainer';
+import MatchboxBot from './matchbox-bot';
+import MatchboxTrainer from './matchbox-trainer';
+import Trainer from './trainer';
 
 const bots: Map<string, BotSupplier> = new Map();
 bots.set('random-bot', () => new RandomBot());
 bots.set('simple-nn-bot', () => new SimpleNNBot());
+bots.set('matchbox-bot', () => new MatchboxBot());
 
 const trainers: Map<string, TrainerSupplier> = new Map();
 trainers.set('simple-nn-trainer', () => new SimpleNNTrainer());
+trainers.set('matchbox-trainer', () => new MatchboxTrainer());
 
 export interface BotSupplier {
     (): Bot;
 }
 
 export interface TrainerSupplier {
-    (): Trainer;
+    (): Trainer<any>;
 }
 
 export default class BotFactory {
@@ -24,7 +29,7 @@ export default class BotFactory {
         return bots.get(botName)();
     }
 
-    static createTrainer(trainerName: string): Trainer {
+    static createTrainer(trainerName: string): Trainer<any> {
         return trainers.get(trainerName)();
     }
 }

@@ -22,3 +22,13 @@ export default function getGameConfig(gameMode: string): GameConfig {
       throw new Error(`Invalid game mode: ${gameMode}`);
   }
 }
+
+export function getGameMode(gameConfig: GameConfig): string | null {
+  if (Object.keys(gameConfig).every(key => gameConfig[key] === classic[key])) {
+    return 'classic';
+  } else if (Object.keys(gameConfig).every(key => gameConfig[key] === beginner[key])) {
+    return 'beginner';
+  } else {
+    return null;
+  }
+}

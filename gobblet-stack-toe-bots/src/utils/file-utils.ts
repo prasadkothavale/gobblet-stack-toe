@@ -16,9 +16,9 @@ export async function createFileIfNotExists(filePath: string, fileName: string):
     }
 }
 
-export async function writeNuralNetwork(name: string, network: any): Promise<void> {
+export async function writeNeuralNetwork(name: string, network: any): Promise<void> {
     const content = JSON.stringify(network.toJSON());
-    return fs.promises.writeFile(path.join(__dirname, '..', 'data', name), content);
+    return fs.promises.writeFile(path.join(__dirname, '..', 'data', 'brain', name), content);
 }
 
 export async function appendFile(filePath: string, fileName: string, content: string): Promise<void> {
@@ -27,7 +27,7 @@ export async function appendFile(filePath: string, fileName: string, content: st
 }
 
 export async function writeGameNdJson(fileName: string, game: Game): Promise<void> {
-    const dataFilePath = path.join(__dirname, '..', 'data');
+    const dataFilePath = path.join(__dirname, '..', 'data', 'scrap');
     const simulatedGame: SimulatedGame = {
         winner: game.state.winner,
         gameStatus: game.state.status,

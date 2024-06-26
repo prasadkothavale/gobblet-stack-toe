@@ -26,8 +26,8 @@ export interface SimulatedGame {
     moves: string[]
 }
 
-export const logResult = (result: SimulationResult) => {
-    console.log(' SIMULATION RESULT');
+export const logResult = (result: SimulationResult, iteration?: number) => {
+    iteration? console.log(` SIMULATION #${iteration} RESULT`) : console.log(' SIMULATION RESULT');
     console.table([
         Object.assign({bot: 1, name: result.bot1.name, player: 'white'}, result.bot1.white),
         Object.assign({bot: 1, name: result.bot1.name, player: 'black'}, result.bot1.black),

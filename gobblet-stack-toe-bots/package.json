@@ -12,7 +12,8 @@
     "build": "tsc",
     "postinstall": "node post-install.js",
     "simulation": "ts-node src/simulator/simulation.ts",
-    "training": "ts-node src/simulator/training.ts"
+    "training": "ts-node src/simulator/training.ts",
+    "itr-train": "ts-node src/simulator/iterative-training.ts"
   },
   "repository": {
     "type": "git",
@@ -58,6 +59,8 @@
     ]
   },
   "dependencies": {
+    "2d-array-rotation": "^2.1.1",
+    "moment": "^2.30.1",
     "ndjson": "^2.0.0"
   }
 }
