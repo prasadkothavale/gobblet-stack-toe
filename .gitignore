@@ -170,5 +170,5 @@ node_modules/
 coverage/
 
 # Data and downloaded files
-gobblet-stack-toe-bots/src/data/
+gobblet-stack-toe-bots/src/data/scrap
 gobblet-stack-toe-bots/src/lib/
