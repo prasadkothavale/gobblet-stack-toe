@@ -115,6 +115,11 @@ export default function Debugger() {
         </table>;
     }
 
+    const renderMoves = (): ReactElement => {
+        const moves = game.moves.map((move: Move, index: number) => <li key={'move-' + index}>{move.toNotation()}</li>);
+        return <ol>{moves}</ol>;
+    }
+
     const renderMatchboxMoves = (): ReactElement => {
         const moves: Move[] = GameEngine.getValidMoves(game);
         const rows = moves
@@ -158,6 +163,8 @@ export default function Debugger() {
                     Last move: {lastMove}, Turn: {game?.turn}
                 </td>
                 <td>
+                    <h3>Moves</h3>
+                    {game && renderMoves()}
                     <textarea placeholder="Plain text moves" rows={10} value={movesText} onChange={(event) => updateMoves(event.target.value)}></textarea><br/>
                     <input placeholder="JSON array moves" type="text" value={movesJsonStr} onChange={(event) => setMovesJsonStr(event.target.value)}/>
                     <button onClick={() => setMoves(JSON.parse(movesJsonStr))}>Load</button><br/>
