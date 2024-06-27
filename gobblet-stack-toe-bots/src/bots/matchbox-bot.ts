@@ -93,8 +93,8 @@ export default class MatchboxBot implements Bot {
         const targetStack: SizedStack<Gobblet> = board[target.y][target.x];
         targetStack.push(sourceStack.pop());
 
-        const boardNumber = getMinBoardNumber(GameEngine.getBoardNumber(game.board, game.config), game.config).toString();
-        const externalStackNumber = getMinExternalStackNumber(GameEngine.getExternalStackNumber(game.externalStack, game.config), game.config).toString();
+        const boardNumber = getMinBoardNumber(GameEngine.getBoardNumber(board, game.config), game.config).toString();
+        const externalStackNumber = getMinExternalStackNumber(GameEngine.getExternalStackNumber(externalStack, game.config), game.config).toString();
         return this.brain.find({boardNumber, externalStackNumber});
     }
 
@@ -118,7 +118,7 @@ export interface Matchbox {
     draws?: number;
 }
 
-interface MoveMatchbox {
+export interface MoveMatchbox {
     move: Move;
     matchbox: Matchbox;
     score: number;
