@@ -54,7 +54,7 @@ export default abstract class Trainer<T> {
         this.trainingData = [];
 
         return new Promise((resolve, reject) => {
-            const inputPath = path.join(__dirname, '..', 'data', inputFile);
+            const inputPath = path.join(__dirname, '..', 'data', 'scrap', inputFile);
             fs.createReadStream(inputPath)
                 .pipe(ndjson.parse())
                 .on('data', (simulatedGame: SimulatedGame) => this.toTrainingData(simulatedGame))

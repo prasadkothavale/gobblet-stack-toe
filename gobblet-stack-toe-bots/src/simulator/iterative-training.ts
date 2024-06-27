@@ -14,7 +14,7 @@ const errorMessage = `
 Invalid arguments provided: ${process.argv?.slice(2)}
 
 Usage:   npm run itr-train -- <beginner|classic> <iterations> <simulations> <trainer> <bot1> <bot2> <output file>
-Example: npm run itr-train -- beginner 10 100 matchbox-trainer matchbox-bot random-bot matchbox-brain.json
+Example: npm run itr-train -- beginner 10 100 matchbox-trainer matchbox-bot random-bot beginner-matchbox-brain.json
 `
 
 if (!mode || !iterationsStr || !parseInt(iterationsStr) || !simulationsStr || !parseInt(simulationsStr) || !trainerName
@@ -48,8 +48,9 @@ if (!bot2) {
 }
 
 const gameConfig: GameConfig = getGameConfig(mode);
-const simulationDir = path.join(__dirname, '..', 'data', 'scrap', moment().format('YYYY-MM-DD HH.mm.ss'));
-fs.mkdirSync(simulationDir);
+const simulationDir = moment().format('YYYY-MM-DD HH.mm.ss');
+const simulationPath = path.join(__dirname, '..', 'data', 'scrap', simulationDir);
+fs.mkdirSync(simulationPath);
 
 async function iterativeTraining(): Promise<void> {
     for (let iteration = 0; iteration < iterations; iteration++) {

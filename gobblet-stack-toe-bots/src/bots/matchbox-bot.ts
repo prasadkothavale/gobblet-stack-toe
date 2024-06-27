@@ -10,8 +10,11 @@ import { getMinBoardNumber, getMinExternalStackNumber } from "../utils/board-uti
 
 export default class MatchboxBot implements Bot {
 
-    private brain: SortedArray<MatchBox>;
+    private brain: SortedArray<Matchbox>;
     private player: Player;
+    private randomness: number = 0.2;
+    private learningRate: number = 1;
+    private threshold: number = 0;
 
     canPlay(gameConfig: GameConfig): boolean {
         return ['classic', 'beginner'].includes(getGameMode(gameConfig));
@@ -19,12 +22,13 @@ export default class MatchboxBot implements Bot {
 
     onLoad(gameConfig: GameConfig): void {
         const mode = getGameMode(gameConfig);
-        const data: MatchBox[] = JSON.parse(
+        const data: Matchbox[] = JSON.parse(
             fs.readFileSync(
                 path.join(__dirname, '..', 'data', 'brain', `${mode}-matchbox-brain.json`), 
                 {encoding: 'utf8', flag: 'r'})
         );
-        this.brain = new SortedArray<MatchBox>(matchBoxComparator);
+        this.brain = new SortedArray<Matchbox>(matchBoxComparator);
+        this.brain.loadSortedArray(data, matchBoxComparator);
     }
 
     onNewGame(gameConfig: GameConfig, player: Player): void {
@@ -33,46 +37,54 @@ export default class MatchboxBot implements Bot {
     
     playMove(game: Game): Move {
         const moves: Move[] = GameEngine.getValidMoves(game);
-        return this.player === Player.WHITE? this.getBestWhiteMove(moves, game) : this.getBestBlackMove(moves, game);
-    }
-    
-    private getBestWhiteMove(moves: Move[], game: Game): Move {
-        let min = null;
-        let bestMove: Move = null;
+        if (Math.random() <= this.randomness) {
+            return moves[Math.round(Math.random() * (moves.length - 1))];
+        }
 
-        moves.forEach(move => {
-            const score = this.getMoveScore(move, game);
-            if (min === null || score < min) {
-                min = score;
-                bestMove = move;
-            }
+        let totalXp = 0;
+        const moveMatchboxes: MoveMatchbox[] = moves.map((move: Move) => {
+            const matchbox: Matchbox = this.getMatchbox(move, game);
+            const xp = matchbox? matchbox.whiteWins + matchbox.blackWins + matchbox.draws : 0;
+            totalXp += xp;
+            const score = matchbox && xp > 0? this.player === Player.WHITE ? 
+                (2*matchbox.whiteWins + matchbox.draws)/xp : 
+                (2*matchbox.blackWins + matchbox.draws)/xp : 0;
+            return {move, matchbox, score, xp};
         });
 
-        return bestMove;
+        const minXp = this.threshold * totalXp / moves.length;
+        if (Math.random() <= this.learningRate) {
+            // play less confident best move to learn a new move
+            const lessConfidentMoves: MoveMatchbox[] = moveMatchboxes.filter((moveMatchBox: MoveMatchbox) => moveMatchBox.xp <= minXp);
+            return this.getBestMove(lessConfidentMoves.length > 0? lessConfidentMoves: moveMatchboxes, false);
+        } else {
+            // play known best move
+            return this.getBestMove(moveMatchboxes.filter((moveMatchBox: MoveMatchbox) => moveMatchBox.xp > minXp), true);
+        }
+
     }
 
-    private getBestBlackMove(moves: Move[], game: Game): Move {
-        let max = null;
-        let bestMove: Move = null;
-
-        moves.forEach(move => {
-            const score = this.getMoveScore(move, game);
-            if (max === null || score > max) {
-                max = score;
-                bestMove = move;
+    private getBestMove(moveMatchboxes: MoveMatchbox[], xpMatters: boolean): Move {
+        let bestMoveMatchbox: MoveMatchbox = null;
+        moveMatchboxes.forEach((moveMatchbox: MoveMatchbox) => {
+            if(!bestMoveMatchbox) {
+                bestMoveMatchbox = moveMatchbox;
+            } else {
+                if(moveMatchbox.score === bestMoveMatchbox.score) {
+                    if (!xpMatters || bestMoveMatchbox.xp === moveMatchbox.xp) {
+                        bestMoveMatchbox = [bestMoveMatchbox, moveMatchbox][Math.round(Math.random())];
+                    } else {
+                        bestMoveMatchbox = moveMatchbox.xp > bestMoveMatchbox.xp ? moveMatchbox : bestMoveMatchbox
+                    }
+                } else {
+                    bestMoveMatchbox = moveMatchbox.score > bestMoveMatchbox.score? moveMatchbox : bestMoveMatchbox;
+                }
             }
         });
-
-        return bestMove;
+        return bestMoveMatchbox.move;
     }
 
-    private getBestMove(moves: Move[], game: Game): Move {
-        const moveMatchBox:MoveMatchBox = moves.map((move: Move): MoveMatchBox => ({
-            move, matchbox: this.getMatchbox(move, game), score: 0
-        }));
-    }
-
-    private getMatchbox(move: Move, game: Game): MatchBox {
+    private getMatchbox(move: Move, game: Game): Matchbox {
         const source = move.source;
         const target = move.target;
         const board: SizedStack<Gobblet>[][] = GameEngine.getBoard(GameEngine.getBoardNumber(game.board, game.config), game.config);
@@ -88,7 +100,7 @@ export default class MatchboxBot implements Bot {
 
 }
 
-export function matchBoxComparator(m1: MatchBox, m2: MatchBox): number {
+export function matchBoxComparator(m1: Matchbox, m2: Matchbox): number {
     return m1.boardNumber === m2.boardNumber? 
         compareTo(BigInt(m1.externalStackNumber), BigInt(m2.externalStackNumber)) : 
         compareTo(BigInt(m1.boardNumber), BigInt(m2.boardNumber));
@@ -98,7 +110,7 @@ export function compareTo(b1: bigint, b2: bigint): number {
     return b1 === b2? 0 : b1 < b2? -1 : 1;
 }
 
-export interface MatchBox {
+export interface Matchbox {
     boardNumber: string;
     externalStackNumber: string;
     whiteWins?: number;
@@ -106,8 +118,9 @@ export interface MatchBox {
     draws?: number;
 }
 
-interface MoveMatchBox {
+interface MoveMatchbox {
     move: Move;
-    matchbox: MatchBox;
+    matchbox: Matchbox;
     score: number;
+    xp: number;
 }
