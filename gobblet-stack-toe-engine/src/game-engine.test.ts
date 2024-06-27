@@ -310,6 +310,27 @@ describe('Game engine', () => {
         expect(ge.getValidMovesNotations(game)).not.toContain('#5-A3');
     });
 
+    it('has a white winning diagonal beginner game', () => {
+        const gameConfig: GameConfig = {
+            boardSize: 3,
+            gobbletSize: 3,
+            gobbletsPerSize: 2
+        }
+        const game = ge.createGame(gameConfig);
+
+        ge.performMoveFromNotation(game, '#1-B2');
+        ge.performMoveFromNotation(game, '#3-A1');
+        ge.performMoveFromNotation(game, '#2-C3');
+        ge.performMoveFromNotation(game, '#4-C1');
+        ge.performMoveFromNotation(game, '#1-B1');
+        ge.performMoveFromNotation(game, '#A1-B1');
+        ge.performMoveFromNotation(game, '#B2-A1');
+        ge.performMoveFromNotation(game, '#3-A2');
+        ge.performMoveFromNotation(game, '#2-B2');
+
+        expect(game.state.winner).toEqual(Player.WHITE);
+    });
+
     const testBoardToNumberConversion = (x: bigint, gc: GameConfig) => {
         const board: SizedStack<Gobblet>[][] = ge.getBoard(x, gc);
         const boardNumber: bigint = ge.getBoardNumber(board, gc);
