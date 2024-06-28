@@ -1,17 +1,14 @@
-import React, {useEffect, useState, ReactElement} from 'react';
+import {useEffect, useState, ReactElement} from 'react';
 import GameEngine from '@aehe-games/gobblet-stack-toe-engine/src/game-engine';
-import {GameConfig, Game, Location, Constants, Gobblet, Move, Player} from '@aehe-games/gobblet-stack-toe-engine/src/interface';
+import {GameConfig, Location, Constants, Gobblet, Move } from '@aehe-games/gobblet-stack-toe-engine/src/interface';
 import SizedStack from '@aehe-games/gobblet-stack-toe-engine/src/sized-stack';
 import GobbletUI from '../game/GobbletUI';
 import matchboxBrainData from '@aehe-games/gobblet-stack-toe-bots/src/data/brain/beginner-matchbox-brain.json';
-import {MoveMatchbox, Matchbox, matchBoxComparator} from '@aehe-games/gobblet-stack-toe-bots/src/bots/matchbox-bot';
-import SortedArray from '@aehe-games/gobblet-stack-toe-engine/src/sorted-array';
-import { getMinBoardNumber, getMinExternalStackNumber } from '@aehe-games/gobblet-stack-toe-bots/src/utils/board-utils';
+import { MoveMatchbox } from '@aehe-games/gobblet-stack-toe-bots/src/bots/matchbox-bot';
+import { getMinBoardNumber } from '@aehe-games/gobblet-stack-toe-bots/src/utils/board-utils';
+import MatchboxBot from '@aehe-games/gobblet-stack-toe-bots/src/bots/matchbox-bot';
 
-const matchboxBrain = new SortedArray<Matchbox>(matchBoxComparator);
-matchboxBrain.loadSortedArray(matchboxBrainData, matchBoxComparator);
 
-let game: Game;
 const gameConfig: GameConfig = {
     boardSize: 3,
     gobbletSize: 3,
@@ -28,6 +25,9 @@ export default function Debugger() {
     const [movePointer, setMovePointer] = useState(-1);
     const [nextMoveInput, setNextMoveInput] = useState();
     const [game, setGame] = useState();
+    
+    const matchboxBot: MatchboxBot = new MatchboxBot();
+    matchboxBot.onLoadFromUI(gameConfig, matchboxBrainData);
 
     useEffect(() => {
         const game = GameEngine.createGame(gameConfig);
@@ -57,20 +57,6 @@ export default function Debugger() {
             console.error(e.message);
             console.log(game);
         }
-    }
-
-    const getMatchbox = (move: Move, game: Game): Matchbox | null => {
-        const source = move.source;
-        const target = move.target;
-        const board: SizedStack<Gobblet>[][] = GameEngine.getBoard(GameEngine.getBoardNumber(game.board, game.config), game.config);
-        const externalStack: SizedStack<Gobblet>[] = GameEngine.getExternalStack(GameEngine.getExternalStackNumber(game.externalStack, game.config), game.config);
-        const sourceStack: SizedStack<Gobblet> = source.board ? board[source.y][source.x] : externalStack[source.y];
-        const targetStack: SizedStack<Gobblet> = board[target.y][target.x];
-        targetStack.push(sourceStack.pop());
-
-        const boardNumber = getMinBoardNumber(GameEngine.getBoardNumber(board, game.config), game.config).toString();
-        const externalStackNumber = getMinExternalStackNumber(GameEngine.getExternalStackNumber(externalStack, game.config), game.config).toString();
-        return matchboxBrain.find({boardNumber, externalStackNumber});
     }
 
     const renderRows = (): ReactElement[] => {
@@ -122,21 +108,13 @@ export default function Debugger() {
 
     const renderMatchboxMoves = (): ReactElement => {
         const moves: Move[] = GameEngine.getValidMoves(game);
-        const rows = moves
-            .map((move: Move) => {
-                const matchbox: Matchbox | null = getMatchbox(move, game);
-                const xp = matchbox? matchbox.whiteWins + matchbox.blackWins + matchbox.draws : 0;
-                
-                const score = matchbox && xp > 0? game?.turn === Player.WHITE ? 
-                    (2*matchbox.whiteWins + matchbox.draws)/xp : 
-                    (2*matchbox.blackWins + matchbox.draws)/xp : 0;
-                return {move, matchbox, score, xp};
-            })
-            .sort((m1, m2) => m2.score - m1.score)
+        const moveMatchboxes: MoveMatchbox[] = matchboxBot.minMax(game.board, game.externalStack, game.config, moves, game.turn, 3);
+        const rows = moveMatchboxes
+            .sort((m1, m2) => matchboxBot.getScore(m2.matchbox, m2.xp, game.turn) - matchboxBot.getScore(m1.matchbox, m1.xp, game.turn))
             .map((m: MoveMatchbox, index: number) => {
                 return <tr key={'m-'+index}>
                     <td><button onClick={() => playMove(m.move.toNotation())}>{m.move.toNotation()}</button></td>
-                    <td>{m.score}</td><td>{m.xp}</td><td>{m.matchbox?.whiteWins}</td><td>{m.matchbox?.draws}</td><td>{m.matchbox?.blackWins}</td>
+                    <td>{matchboxBot.getScore(m.matchbox, m.xp, game.turn)}</td><td>{m.xp}</td><td>{m.matchbox?.whiteWins}</td><td>{m.matchbox?.draws}</td><td>{m.matchbox?.blackWins}</td>
                 </tr>;
             });
         return <table border={1} style={{borderCollapse: 'collapse'}} cellPadding={6}>

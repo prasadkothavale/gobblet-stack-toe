@@ -135,3 +135,8 @@ export interface PlayerSequence {
     player: Player, 
     sequence: Location[]
 }
+
+export interface BoardAndExternalStack {
+    board: SizedStack<Gobblet>[][],
+    externalStack: SizedStack<Gobblet>[]
+}

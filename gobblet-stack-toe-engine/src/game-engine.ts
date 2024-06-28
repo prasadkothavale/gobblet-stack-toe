@@ -1,4 +1,4 @@
-import { Move, Gobblet, Player, Game, GameStatus, GameConfig, Location, MoveStatus, GameState, PlayerSequence, Constants } from './interface';
+import { Move, Gobblet, Player, Game, GameStatus, GameConfig, Location, MoveStatus, GameState, PlayerSequence, Constants, BoardAndExternalStack } from './interface';
 import SizedStack from './sized-stack';
 import AtomicReference from './atomic-reference';
 
@@ -59,6 +59,27 @@ export default class GameEngine {
         game.turn = game.turn === Player.WHITE? Player.BLACK : Player.WHITE;
 
         return game.board;
+    }
+
+    /**
+     * Performs a dry run of a valid move and provides resultant board and external stack.
+     * Assumption: provided move is valid.
+     *
+     * @param move - The move to be performed.
+     * @param board - The current game board.
+     * @param externalStack - The current external stack.
+     * @param config - The configuration object containing the players, gobblet size, and gobblets per size.
+     * @returns An object containing the next board and external stack after the dry run of the move.
+     */
+    public static dryRunValidMove(move: Move, board: SizedStack<Gobblet>[][], externalStack: SizedStack<Gobblet>[], config: GameConfig): BoardAndExternalStack {
+        const source = move.source;
+        const target = move.target;
+        const nextBoard: SizedStack<Gobblet>[][] = GameEngine.getBoard(GameEngine.getBoardNumber(board, config), config);
+        const nextExternalStack: SizedStack<Gobblet>[] = GameEngine.getExternalStack(GameEngine.getExternalStackNumber(externalStack, config), config);
+        const sourceStack: SizedStack<Gobblet> = source.board ? nextBoard[source.y][source.x] : nextExternalStack[source.y];
+        const targetStack: SizedStack<Gobblet> = nextBoard[target.y][target.x];
+        targetStack.push(sourceStack.pop());
+        return { board: nextBoard, externalStack: nextExternalStack };
     }
 
     /**
@@ -130,16 +151,31 @@ export default class GameEngine {
      * @returns An array of Move objects representing all valid moves for the current player.
      */
     public static getValidMoves(game: Game): Move[] {
-        const moves: Move[] = [];
         if(GameStatus.LIVE !== game.state.status) {
             return [];
+        } else {
+            return GameEngine.getValidMovesForBoard(game.board, game.externalStack, game.turn, game.config.boardSize);
         }
+    }
 
+    /**
+     * This function calculates all valid moves for a given board and external stack.
+     * A valid move is defined as a move from the external stack to the board or from the board to the board.
+     *
+     * @param board - The current game board.
+     * @param externalStack - The current external stack.
+     * @param turn - The current player's turn.
+     * @param sequenceSize - The size of the sequence expected usually board size - 1.
+     * @returns An array of Move objects representing all valid moves.
+     */
+    public static getValidMovesForBoard(board: SizedStack<Gobblet>[][], externalStack: SizedStack<Gobblet>[], turn: Player, sequenceSize: number) {
+        const moves: Move[] = [];
+        
         // find possible board to board moves
-        game.board.forEach((sourceRow, sy) => 
+        board.forEach((sourceRow, sy) => 
             sourceRow.forEach((sourceCell, sx) => {
-                if(!sourceCell.isEmpty() && sourceCell.peek().player === game.turn) {
-                    game.board.forEach((targetRow, ty) =>
+                if(!sourceCell.isEmpty() && sourceCell.peek().player === turn) {
+                    board.forEach((targetRow, ty) =>
                         targetRow.forEach((targetCell, tx) => {
                             if(!(sy === ty && sx === tx) && targetCell.canPush(sourceCell.peek())) {
                                 moves.push(new Move(
@@ -154,12 +190,12 @@ export default class GameEngine {
         );
 
         // find possible external stack to board moves
-        game.externalStack.forEach((sourceCell, sy) => {
-            if(!sourceCell.isEmpty() && sourceCell.peek().player === game.turn) {
-                game.board.forEach((targetRow, ty) =>
+        externalStack.forEach((sourceCell, sy) => {
+            if(!sourceCell.isEmpty() && sourceCell.peek().player === turn) {
+                board.forEach((targetRow, ty) =>
                     targetRow.forEach((targetCell, tx) => {
                         if(targetCell.canPush(sourceCell.peek()) 
-                            && GameEngine.allowDirectCapture(game.board, game.turn, new Location(true, tx, ty), game.config.boardSize - 1)
+                            && GameEngine.allowDirectCapture(board, turn, new Location(true, tx, ty), sequenceSize - 1)
                         ) {
                             moves.push(new Move(
                                 new Location(false, null, sy),
@@ -171,7 +207,7 @@ export default class GameEngine {
             }
         });
 
-        return moves;   
+        return moves; 
     }
     
     /**
