@@ -349,6 +349,22 @@ describe('Game engine', () => {
         expect(game.state.winner).toEqual(Player.BLACK);
     });
 
+    it('allows direct capture for diagonal sub sequence', () => {
+        const gameConfig: GameConfig = {
+            boardSize: 3,
+            gobbletSize: 3,
+            gobbletsPerSize: 2
+        }
+        const game = ge.createGame(gameConfig);
+
+        ge.performMoveFromNotation(game, '#1-C3');
+        ge.performMoveFromNotation(game, '#3-A3');
+        ge.performMoveFromNotation(game, '#1-A1');
+        ge.performMoveFromNotation(game, '#4-A1');
+
+        expect(game.board[0][0].peek().player).toEqual(Player.BLACK);
+    });
+
     const testBoardToNumberConversion = (x: bigint, gc: GameConfig) => {
         const board: SizedStack<Gobblet>[][] = ge.getBoard(x, gc);
         const boardNumber: bigint = ge.getBoardNumber(board, gc);
