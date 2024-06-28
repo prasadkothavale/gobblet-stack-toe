@@ -321,15 +321,16 @@ export default class GameEngine {
         }
 
         // check diagonals
+        let sequence: Location[] = [];
+        let sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
         for (let i = 0; i < boardSize; i++) {
-            const sequence: Location[] = [];
-            const sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
             const cell: SizedStack<Gobblet> = board[i][i];
             GameEngine.checkCell(cell, sequencePlayer, sequence, i, i, sequenceSize, playerSequences);
         }
+
+        sequence = [];
+        sequencePlayer = new AtomicReference<Player>(null);
         for (let i = 0; i < boardSize; i++) {
-            const sequence: Location[] = [];
-            const sequencePlayer: AtomicReference<Player> = new AtomicReference<Player>(null);
             const cell: SizedStack<Gobblet> = board[i][boardSize - i - 1];
             GameEngine.checkCell(cell, sequencePlayer, sequence, i, boardSize - i - 1, sequenceSize, playerSequences);
         }

@@ -310,7 +310,7 @@ describe('Game engine', () => {
         expect(ge.getValidMovesNotations(game)).not.toContain('#5-A3');
     });
 
-    it('has a white winning diagonal beginner game', () => {
+    it('has a white winning positive diagonal beginner game', () => {
         const gameConfig: GameConfig = {
             boardSize: 3,
             gobbletSize: 3,
@@ -329,6 +329,24 @@ describe('Game engine', () => {
         ge.performMoveFromNotation(game, '#2-B2');
 
         expect(game.state.winner).toEqual(Player.WHITE);
+    });
+
+    it('has a black winning negative diagonal beginner game', () => {
+        const gameConfig: GameConfig = {
+            boardSize: 3,
+            gobbletSize: 3,
+            gobbletsPerSize: 2
+        }
+        const game = ge.createGame(gameConfig);
+
+        ge.performMoveFromNotation(game, '#1-A1');
+        ge.performMoveFromNotation(game, '#3-B2');
+        ge.performMoveFromNotation(game, '#2-A2');
+        ge.performMoveFromNotation(game, '#4-A3');
+        ge.performMoveFromNotation(game, '#1-B1');
+        ge.performMoveFromNotation(game, '#3-C1');
+
+        expect(game.state.winner).toEqual(Player.BLACK);
     });
 
     const testBoardToNumberConversion = (x: bigint, gc: GameConfig) => {
