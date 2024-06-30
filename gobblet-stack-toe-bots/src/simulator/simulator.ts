@@ -1,4 +1,4 @@
-import { Game, GameConfig, GameStatus, Player } from '@aehe-games/gobblet-stack-toe-engine/src/interface';
+import { Game, GameConfig, GameStatus, Move, Player } from '@aehe-games/gobblet-stack-toe-engine/src/interface';
 import GameEngine from '@aehe-games/gobblet-stack-toe-engine/src/game-engine';
 import Bot from '../bots/bot';
 import SimulationResult, {PlayerResult, BotResult} from './simulation-result';
@@ -42,10 +42,17 @@ export default class Simulator {
             let next = execution % 2 === 0? this.bot2 : this.bot1;
 
             while(game.state.status === GameStatus.LIVE) {
-                GameEngine.performMove(game, turn.playMove(game));
-                const current = turn;
-                turn = next;
-                next = current;
+                let move: Move;
+                try {
+                    move = turn.playMove(game);
+                    GameEngine.performMove(game, move);
+                    const current = turn;
+                    turn = next;
+                    next = current;
+                } catch (error) {
+                    console.error(`Error executing move ${move?.toNotation()}, player: ${game.turn}, source gobblet: ${move && JSON.stringify(game.board[move.source.y][move.source.x]?.peek())}`);
+                    throw error;
+                }
             }
             
             this.bot1.onGameEnd? this.bot1.onGameEnd(game) : undefined;

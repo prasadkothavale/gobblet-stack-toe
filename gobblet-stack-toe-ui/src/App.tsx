@@ -1,7 +1,8 @@
-import Debugger from './debugger/Debugger';
+//import Debugger from './debugger/Debugger';
+import HeuristicDebugger from './debugger/HeuristicDebugger';
 
 function App() {
-  return <Debugger/>
+  return <HeuristicDebugger/>
 }
 
 export default App
