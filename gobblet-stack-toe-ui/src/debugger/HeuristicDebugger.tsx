@@ -7,9 +7,9 @@ import HeuristicBot, { MoveScore } from '@aehe-games/gobblet-stack-toe-bots/src/
 
 
 const gameConfig: GameConfig = {
-    boardSize: 3,
+    boardSize: 4,
     gobbletSize: 3,
-    gobbletsPerSize: 2
+    gobbletsPerSize: 3
 }
 
 export default function Debugger() {
@@ -106,8 +106,15 @@ export default function Debugger() {
 
     const renderMatchboxMoves = (): ReactElement => {
         const moves: Move[] = GameEngine.getValidMoves(game);
-        const scoreBoards: MoveScore[] = moves.map((nextMove: Move) => 
-            heuristicBot.minMax(game.board, game.externalStack, game.config, nextMove, game.turn, 3, [nextMove.toNotation()]));
+        let totalTime = 0;
+        const scoreBoards: MoveScore[] = moves.map((nextMove: Move, index: number) => {
+            const start = new Date().getTime();
+            const moveScore: MoveScore = heuristicBot.minMax(game.board, game.externalStack, game.config, nextMove, game.turn, 2, [nextMove.toNotation()]);
+            moveScore.time = new Date().getTime() - start;
+            totalTime += moveScore.time;
+            console.log(`${index} / ${moves.length}`);
+            return moveScore;
+        });
         const rows = scoreBoards
             .sort((m1, m2) => {
                 return game.turn === Player.WHITE ? (m2.score - m1.score) : (m1.score - m2.score);
@@ -115,26 +122,29 @@ export default function Debugger() {
             .map((m: MoveScore, index: number) => {
                 return <tr key={'m-'+index}>
                     <td><button onClick={() => playMove(m.move.toNotation())}>{m.move.toNotation()}</button></td>
-                    <td>{m.score}</td><td>{m.boardNumber?.toString()}</td><td>{m.tree.join(', ')}</td>
+                    <td>{m.score}</td><td>{m.boardNumber?.toString()}</td><td>{m.tree.join(', ')}</td><td>{m.time}</td>
                 </tr>;
             });
-        return <table border={1} style={{borderCollapse: 'collapse'}} cellPadding={6}>
-            <thead>
-                <tr><th>Move</th><th>Score</th><th>Board#</th><th>Tree</th></tr>
-            </thead>
-            <tbody>
-                {rows}
-            </tbody>
-        </table>
+        return <>
+            <table border={1} style={{borderCollapse: 'collapse'}} cellPadding={6}>
+                <thead>
+                    <tr><th>Move</th><th>Score</th><th>Board#</th><th>Tree</th><th>time</th></tr>
+                </thead>
+                <tbody>
+                    {rows}
+                </tbody>
+            </table><br/>
+            <span>Total time: {totalTime} ms</span>
+        </>
     }
     
     return <div>
         <h1>Debugger</h1>
         <table cellPadding={10}><tbody>
             <tr>
-                <td>
+                <td style={{verticalAlign: 'top'}}>
                     {game && <h2>Board#: {GameEngine.getBoardNumber(board, game.config).toString()}</h2>}
-                    {game && <h3>Score: {heuristicBot.getHeuristicScore(board, 'beginner')}</h3>}
+                    {game && <h3>Score: {heuristicBot.getHeuristicScore(board, 'classic')}</h3>}
                     {renderBoard(board)}<br/>
                     {game && renderExternalStack(game.externalStack)}<br/>
                     <button disabled={movePointer <= 0}>&lt;</button>&nbsp;
@@ -146,7 +156,7 @@ export default function Debugger() {
                     <br/><br/>
                     {renderBoard(GameEngine.getBoard(BigInt(inputBoardNumber), gameConfig))}<br/>
                 </td>
-                <td>
+                <td style={{verticalAlign: 'top'}}>
                     <h3>Moves</h3>
                     {game && renderMoves()}
                     <textarea placeholder="Plain text moves" rows={10} value={movesText} onChange={(event) => updateMoves(event.target.value)}></textarea><br/>

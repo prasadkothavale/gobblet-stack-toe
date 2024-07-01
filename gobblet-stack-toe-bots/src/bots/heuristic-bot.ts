@@ -17,7 +17,7 @@ export default class HeuristicBot implements Bot {
     private depth: number = 3;
     private mode: string;
     private cache: Map<Player, Map<number, SortedArray<BoardNumberScore>>> = new Map<Player, Map<number, SortedArray<BoardNumberScore>>>();
-    private enableCaching: boolean = false;
+    private enableCaching: boolean = true;
 
     public canPlay(gameConfig: GameConfig): boolean {
         return ['classic', 'beginner'].includes(getGameMode(gameConfig));
@@ -91,11 +91,15 @@ export default class HeuristicBot implements Bot {
             row.forEach((cell: SizedStack<Gobblet>, x: number) => {
                 const gobblet: Gobblet = cell.peek();
                 if (gobblet) {
-                    !cellScores[mode] && console.error(cellScores, mode);
-                    if (gobblet.player === Player.WHITE) {
-                        whiteScore += cellScores[mode][y][x] * (gobblet.size + 1);
-                    } else {
-                        blackScore += cellScores[mode][y][x] * (gobblet.size + 1);
+                    try {
+                        if (gobblet.player === Player.WHITE) {
+                            whiteScore += cellScores[mode][y][x] * (gobblet.size + 1);
+                        } else {
+                            blackScore += cellScores[mode][y][x] * (gobblet.size + 1);
+                        }
+                    } catch (e) {
+                        console.error(`Error calculating heuristic score for gobblet at [${x}, ${y}], gobblet: ${JSON.stringify(gobblet)}, mode: ${mode}`, e);
+                        throw e;
                     }
                 }
             });
@@ -138,6 +142,7 @@ export interface MoveScore {
     boardNumber: bigint;
     player: Player;
     tree: string[];
+    time?: number;
 }
 
 class BoardNumberScore {
