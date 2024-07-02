@@ -1,0 +1,41 @@
+.game {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 700px;
+}
+
+.game-toolbar {
+    width: 100%;
+}
+
+.game-toolbar .human {
+    padding: 5px 10px;
+}
+
+.game-toolbar .human-white {
+    color: #212121;
+    background-color: #FAFAFA;
+    border: 2px solid #212121;
+}
+
+.game-toolbar .human-black {
+    color: #FAFAFA;
+    background-color: #212121;
+    border: 2px solid #FAFAFA;
+}
+
+.game-toolbar label {
+    font-weight: 600;
+}
+
+.game-toolbar h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.game-toolbar > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

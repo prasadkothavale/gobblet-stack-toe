@@ -14,8 +14,8 @@ export default class MatchboxBot implements Bot {
     private player: Player;
     private randomness: number = 0;
     private learningRate: number = 0;
-    private threshold: number = 0;
-    private depth: number = 3;
+    private threshold: number = 0.5;
+    private depth: number = 2;
 
     public canPlay(gameConfig: GameConfig): boolean {
         return ['classic', 'beginner'].includes(getGameMode(gameConfig));

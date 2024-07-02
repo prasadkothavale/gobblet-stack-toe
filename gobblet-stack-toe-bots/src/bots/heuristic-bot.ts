@@ -52,7 +52,7 @@ export default class HeuristicBot implements Bot {
 
         let moveScoreBoard: MoveScore;
         if (gameState.status !== GameStatus.LIVE) {
-            const score = gameState.winner? gameState.winner === Player.WHITE ? 1 : 0 : -1;
+            const score = gameState.winner? gameState.winner === Player.WHITE ? 1 : -1 : 0;
             moveScoreBoard = { score, move, boardNumber, player, tree }
         } else if (depth === 0) {
             const score = this.getHeuristicScore(next.board, this.mode);

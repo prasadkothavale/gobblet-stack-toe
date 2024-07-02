@@ -7,14 +7,14 @@ import HeuristicBot, { MoveScore } from '@aehe-games/gobblet-stack-toe-bots/src/
 
 
 const gameConfig: GameConfig = {
-    boardSize: 4,
+    boardSize: 3,
     gobbletSize: 3,
-    gobbletsPerSize: 3
+    gobbletsPerSize: 2
 }
 
 export default function Debugger() {
 
-    const [board, setBoard] = useState([]);
+    const [board, setBoard] = useState<SizedStack<Gobblet>[][]>([]);
     const [moves, setMoves] = useState([]);
     const [movesJsonStr, setMovesJsonStr] = useState([]);
     const [movesText, setMovesText] = useState();
@@ -109,7 +109,7 @@ export default function Debugger() {
         let totalTime = 0;
         const scoreBoards: MoveScore[] = moves.map((nextMove: Move, index: number) => {
             const start = new Date().getTime();
-            const moveScore: MoveScore = heuristicBot.minMax(game.board, game.externalStack, game.config, nextMove, game.turn, 2, [nextMove.toNotation()]);
+            const moveScore: MoveScore = heuristicBot.minMax(game.board, game.externalStack, game.config, nextMove, game.turn, 3, [nextMove.toNotation()]);
             moveScore.time = new Date().getTime() - start;
             totalTime += moveScore.time;
             console.log(`${index} / ${moves.length}`);

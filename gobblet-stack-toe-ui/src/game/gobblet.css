@@ -1,28 +1,35 @@
 .gobblet {
+    width: 0;
+    height: 0;
+    margin: auto;
+}
+
+.gobblet-W {
+    background-color: #FEFEFE;
+    border: solid 3px #212121;
+    box-shadow: 0px 3px 0 #212121;
+}
+
+.gobblet-B {
+    background-color: #212121;
+    border: solid 3px #BDBDBD;
+    box-shadow: 0px 3px 0 #212121;
+}
+
+.gobblet-0 {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+}
+
+.gobblet-1 {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+}
+
+.gobblet-2 {
     width: 50px;
     height: 50px;
-}
-
-.gobblet-W-0 {
-    background-color: #BBDEFB;
-}
-
-.gobblet-W-1 {
-    background-color: #64B5F6;
-}
-
-.gobblet-W-2 {
-    background-color: #2196F3;
-}
-
-.gobblet-B-0 {
-    background-color: #A1887F;
-}
-
-.gobblet-B-1 {
-    background-color: #6D4C41;
-}
-
-.gobblet-B-2 {
-    background-color: #3E2723;
+    border-radius: 25px;
 }
