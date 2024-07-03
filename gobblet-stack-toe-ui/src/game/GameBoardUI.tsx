@@ -1,11 +1,38 @@
-import { GameConfig, Gobblet, Move, Location, Constants } from "@aehe-games/gobblet-stack-toe-engine/src/interface";
+import { GameConfig, Gobblet, Move, Location, Constants, Player } from "@aehe-games/gobblet-stack-toe-engine/src/interface";
 import SizedStack from "@aehe-games/gobblet-stack-toe-engine/src/sized-stack";
 import GobbletUI from "./GobbletUI";
-import { ReactElement } from "react";
-import './game-board.css'
+import { ReactElement, useRef, useState } from "react";
+import './game-board-ui.css'
+import { Toast } from "primereact/toast";
 
-export default function GameBoardUI({board, externalStack, playMove, gameConfig, difficulty}: BoardInterface) {
+export default function GameBoardUI({board, externalStack, playMove, gameConfig, turn, human, lastMove}: BoardInterface) {
+    const toast = useRef(null);
+    const [source, setSource] = useState<Location | null>();
 
+    const onCellClick = (location: Location) => {
+        if (!source) {
+            const sourceStack = (location.board && location.x !== null) ? board[location.y][location.x] : externalStack[location.y]
+            if (turn !== human) {
+                // @ts-expect-error(18047)
+                toast.current.show({severity:'info', summary: 'Not You Turn', detail: 'Please wait, I am thinking my move!', life: 5000});
+            }else if (sourceStack.isEmpty()) {
+                // @ts-expect-error(18047)
+                toast.current.show({severity:'info', summary: 'Invalid Move', detail: 'You cannot select an empty location.', life: 5000});
+            } else if (sourceStack.peek().player !== turn) {
+                // @ts-expect-error(18047)
+                toast.current.show({severity:'info', summary: 'Invalid Move', detail: 'Don\'t move opponent\'s gobblet', life: 5000});
+            } else {
+                setSource(location);
+            }
+        } else if (location.equals(source)) {
+            setSource(null);
+        } else {
+            const isValid = playMove(new Move(source, location));
+            if (isValid) {
+                setSource(null);
+            }
+        }
+    }
 
     const renderRows = (board: SizedStack<Gobblet>[][]): ReactElement[] => {
         const indexCells = [<td key="index-row"></td>];
@@ -20,7 +47,20 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
             row.forEach((cell: SizedStack<Gobblet>, c: number) => {
                 const location: Location = new Location(true, r, c);
                 const subNotation: string = location.toSubNotation();
-                cells.push(<td className="board-cell" id={subNotation} key={subNotation}><GobbletUI gobblet={cell.peek()} /></td>);
+                const selected = source && source.board && source.y === r && source.x === c;
+                const lastSelectionSource = lastMove && (lastMove.source.board && lastMove.source.y === r && lastMove.source.x === c);
+                const lastSelectionTarget = lastMove && (lastMove.target.y === r && lastMove.target.x === c);
+                const classes = ['board-cell'];
+                selected && classes.push('selected');
+                lastSelectionSource && classes.push('last-selection-source');
+                lastSelectionTarget && classes.push('last-selection-target');
+                cells.push(
+                    <td className={classes.join(' ')} 
+                        id={subNotation} key={subNotation} 
+                        onClick={() => onCellClick(new Location(true, c, r))}
+                    >
+                        <GobbletUI gobblet={cell.peek()} />
+                    </td>);
             })
             rows.push(<tr key={r}>{cells}</tr>);
         })
@@ -40,7 +80,17 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
         const indexRow: ReactElement[] = [];
         const row: ReactElement[] = externalStack.map((stack, index) => {
             indexRow.push(<td key={index} style={{textAlign: 'center'}}>{index + 1}</td>);
-            return <td className="board-cell" key={'#'+index} id={'#'+index}><GobbletUI gobblet={stack.peek()} /></td>;
+            const selected = source && !source.board && source.y === index;
+            const lastSelection = lastMove && !lastMove.source.board && lastMove.source.y === index;
+            const classes = ['board-cell'];
+            selected && classes.push('selected');
+            lastSelection && classes.push('last-selection-source');
+            return <td className={classes.join(' ')}
+                key={'#'+index} id={'#'+index}
+                onClick={() => onCellClick(new Location(false, null, index))}
+            >
+                <GobbletUI gobblet={stack.peek()} />
+            </td>;
         });
         return <table className="game-external-stack-ui">
             <tbody>
@@ -50,6 +100,7 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
     }
 
     return <div className="game-board-ui">
+        <Toast ref={toast} />
         {renderBoard(board)}
         {renderExternalStack(externalStack)}
     </div>
@@ -59,6 +110,8 @@ export interface BoardInterface {
     board: SizedStack<Gobblet>[][];
     externalStack: SizedStack<Gobblet>[];
     gameConfig: GameConfig;
-    difficulty: number;
-    playMove: (move: Move) => void;
+    turn: Player;
+    human: Player;
+    playMove: (move: Move) => boolean;
+    lastMove: Move | null | undefined;
 }

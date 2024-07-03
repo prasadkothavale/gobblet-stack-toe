@@ -3,7 +3,6 @@ import GameEngine from '@aehe-games/gobblet-stack-toe-engine/src/game-engine';
 import Bot from './bot';
 import SizedStack from '@aehe-games/gobblet-stack-toe-engine/src/sized-stack';
 import { getGameMode } from '../utils/game-config-utils';
-import { MoveMatchbox, Matchbox } from './matchbox-bot';
 import SortedArray from '@aehe-games/gobblet-stack-toe-engine/src/sorted-array';
 
 const cellScores = {
@@ -13,18 +12,18 @@ const cellScores = {
 
 export default class HeuristicBot implements Bot {
 
-    private player: Player;
+    player: Player;
     private depth: number = 3;
-    private mode: string;
+    mode: string;
     private cache: Map<Player, Map<number, SortedArray<BoardNumberScore>>> = new Map<Player, Map<number, SortedArray<BoardNumberScore>>>();
     private enableCaching: boolean = true;
 
     public canPlay(gameConfig: GameConfig): boolean {
-        return ['classic', 'beginner'].includes(getGameMode(gameConfig));
+        return ['classic', 'beginner'].includes(getGameMode(gameConfig) || '');
     }
 
     public onLoad(gameConfig: GameConfig): void {
-        this.mode = getGameMode(gameConfig);
+        this.mode = getGameMode(gameConfig) || null;
     }
 
     public playMove(game: Game): Move {

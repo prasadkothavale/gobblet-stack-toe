@@ -30,12 +30,12 @@ export class Location {
     board: boolean;
 
     /** If board is true x is x axis of the board else insignificant for external stack */
-    x: number;
+    x: number | null;
 
     /** If board is true y is y axis of the board else y is external stack number */
     y: number;
 
-    public constructor(board: boolean, x: number, y: number) {
+    public constructor(board: boolean, x: number | null, y: number) {
         this.board = board;
         this.x = x;
         this.y = y;
@@ -45,6 +45,7 @@ export class Location {
         if (!subNotation || subNotation.trim() === '') {
             throw new Error('Invalid subNotation: ' + subNotation);
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const [_, x, y] = subNotation.match(/([A-Za-z#])(\d{1,2})/)
         if (!x ||!y) {
             throw new Error('Invalid subNotation: ' + subNotation);
