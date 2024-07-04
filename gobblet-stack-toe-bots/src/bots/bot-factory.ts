@@ -11,7 +11,9 @@ const bots: Map<string, BotSupplier> = new Map();
 bots.set('random-bot', () => new RandomBot());
 bots.set('simple-nn-bot', () => new SimpleNNBot());
 bots.set('matchbox-bot', () => new MatchboxBot());
-bots.set('heuristic-bot', () => new HeuristicBot());
+bots.set('heuristic-bot-1', () => new HeuristicBot(1));
+bots.set('heuristic-bot-2', () => new HeuristicBot(2));
+bots.set('heuristic-bot-3', () => new HeuristicBot(3));
 
 const trainers: Map<string, TrainerSupplier> = new Map();
 trainers.set('simple-nn-trainer', () => new SimpleNNTrainer());

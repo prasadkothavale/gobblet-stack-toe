@@ -13,10 +13,14 @@ const cellScores = {
 export default class HeuristicBot implements Bot {
 
     player: Player;
-    private depth: number = 3;
+    private depth;
     mode: string;
     private cache: Map<Player, Map<number, SortedArray<BoardNumberScore>>> = new Map<Player, Map<number, SortedArray<BoardNumberScore>>>();
     private enableCaching: boolean = true;
+
+    constructor (depth: number) {
+        this.depth = depth;
+    }
 
     public canPlay(gameConfig: GameConfig): boolean {
         return ['classic', 'beginner'].includes(getGameMode(gameConfig) || '');
@@ -30,11 +34,13 @@ export default class HeuristicBot implements Bot {
         const moves: Move[] = GameEngine.getValidMoves(game);
         const scoreBoards: MoveScore[] = moves.map((nextMove: Move) => 
             this.minMax(game.board, game.externalStack, game.config, nextMove, this.player, this.depth, [nextMove.toNotation()]));
-        return this.getBestScoreBoard(scoreBoards, this.player).move;
+        const moveScore: MoveScore = this.getBestScoreBoard(scoreBoards, this.player)
+        return moveScore.move;
     }
 
     public onNewGame(gameConfig: GameConfig, player: Player): void {
         this.player = player;
+        console.log(`----------------${this.player}-${this.depth}---------------`);
     }
 
     public minMax(board: SizedStack<Gobblet>[][], externalStack: SizedStack<Gobblet>[], config: GameConfig, move: Move, player: Player, depth: number, tree: string[]): MoveScore {

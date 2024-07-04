@@ -40,6 +40,13 @@ export default class Simulator {
             const game: Game = GameEngine.createGame(this.gameConfig);
             let turn = execution % 2 === 0? this.bot1 : this.bot2;
             let next = execution % 2 === 0? this.bot2 : this.bot1;
+            if (execution % 2 === 0) {
+                this.bot1.onNewGame && this.bot1.onNewGame(this.gameConfig, Player.WHITE);
+                this.bot2.onNewGame && this.bot2.onNewGame(this.gameConfig, Player.BLACK);
+            } else {
+                this.bot1.onNewGame && this.bot1.onNewGame(this.gameConfig, Player.BLACK);
+                this.bot2.onNewGame && this.bot2.onNewGame(this.gameConfig, Player.WHITE);
+            }
 
             while(game.state.status === GameStatus.LIVE) {
                 let move: Move;
