@@ -11,6 +11,10 @@
     background-color: #3F51B5;
 }
 
+.board-cell.in-sequence {
+    background-color: #9FA8DA;
+}
+
 .board-cell.last-selection-target {
     border: solid 4px #3F51B5;
 }

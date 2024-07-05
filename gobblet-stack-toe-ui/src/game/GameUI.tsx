@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import GameToolbar from "./GameToolbar";
-import { Move, Player, Game, Gobblet, GameConfig, GameStatus } from "@aehe-games/gobblet-stack-toe-engine/src/interface";
+import { Move, Player, Game, Gobblet, GameConfig, GameStatus, Location } from "@aehe-games/gobblet-stack-toe-engine/src/interface";
 import './game-ui.css';
 import SizedStack from "@aehe-games/gobblet-stack-toe-engine/src/sized-stack";
 import { ProgressSpinner } from 'primereact/progressspinner';
@@ -28,9 +28,10 @@ export default function GameUI() {
     const [board, setBoard] = useState<SizedStack<Gobblet>[][]>([]);
     const [externalStack, setExternalStack] = useState<SizedStack<Gobblet>[]>([]);
     const [lastMove, setLastMove] = useState<Move>();
+    const [source, setSource] = useState<Location | null>();
 
     const toast = useRef(null);
-    const heuristicBot: HeuristicBot = new HeuristicBot();
+    const heuristicBot: HeuristicBot = new HeuristicBot(difficulty-1);
     heuristicBot.onLoad(gameConfig);
 
     useEffect(() => {
@@ -53,6 +54,7 @@ export default function GameUI() {
         setGame(game);
         setBoard(game.board);
         setExternalStack(game.externalStack);
+        setMoves([]);
         heuristicBot.onNewGame(gameConfig, human === Player.WHITE? Player.BLACK : Player.WHITE );
     }
 
@@ -89,6 +91,7 @@ export default function GameUI() {
         } catch (err) {
             // @ts-expect-error(18047)
             toast.current.show({severity:'warn', summary: 'Invalid Move', detail:`${err}`.replace('Error: Invalid move: ', ''), life: 5000});
+            setSource(null);
             return false;
         }
     }
@@ -138,6 +141,9 @@ export default function GameUI() {
                         turn={turn}
                         lastMove={lastMove}
                         human={human}
+                        source={source}
+                        setSource={setSource}
+                        sequences={game.state.sequences || []}
                     />
                  </div>
                  <div className="col-12">

@@ -37,4 +37,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 50px;
+}
+
+@media screen and (max-width: 550px) {
+    .game-toolbar {
+        font-size: 80%;
+    }
 }

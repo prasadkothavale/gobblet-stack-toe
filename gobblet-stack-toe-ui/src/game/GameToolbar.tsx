@@ -19,17 +19,17 @@ export default function GameToolbar({difficulty, setDifficulty, human, turn, bot
 
     return (
         <div className="game-toolbar grid">
-            <div className='col-6 md:col-3'>
-                <h3>You are <span className={human === Player.WHITE? 'human human-white' : 'human human-black'}>{human}</span></h3>
+            <div className='col-7 md:col-4'>
+                <h3>You have <span className={human === Player.WHITE? 'human human-white' : 'human human-black'}>{human}</span> pieces</h3>
             </div>
-            <div className='col-6 md:col-3'>
+            <div className='col-5 md:col-3'>
                 {renderTurn()}
             </div>
             <div className='col-8 md:col-4 difficulty'>
                 <label>Difficulty</label> 
                 <Rating value={difficulty} onChange={(e: RatingChangeEvent) => setDifficulty(e.value || 0)} cancel={false} />
             </div>
-            <div className='col-4 md:col-2'>
+            <div className='col-4 md:col-1'>
                 <Button icon="pi pi-refresh" onClick={onReset}/>
             </div>
         </div>

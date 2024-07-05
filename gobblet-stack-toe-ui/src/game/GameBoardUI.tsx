@@ -1,13 +1,12 @@
 import { GameConfig, Gobblet, Move, Location, Constants, Player } from "@aehe-games/gobblet-stack-toe-engine/src/interface";
 import SizedStack from "@aehe-games/gobblet-stack-toe-engine/src/sized-stack";
 import GobbletUI from "./GobbletUI";
-import { ReactElement, useRef, useState } from "react";
+import { Dispatch, ReactElement, SetStateAction, useRef } from "react";
 import './game-board-ui.css'
 import { Toast } from "primereact/toast";
 
-export default function GameBoardUI({board, externalStack, playMove, gameConfig, turn, human, lastMove}: BoardInterface) {
+export default function GameBoardUI({board, externalStack, playMove, gameConfig, turn, human, lastMove, source, setSource, sequences}: BoardInterface) {
     const toast = useRef(null);
-    const [source, setSource] = useState<Location | null>();
 
     const onCellClick = (location: Location) => {
         if (!source) {
@@ -50,10 +49,14 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
                 const selected = source && source.board && source.y === r && source.x === c;
                 const lastSelectionSource = lastMove && (lastMove.source.board && lastMove.source.y === r && lastMove.source.x === c);
                 const lastSelectionTarget = lastMove && (lastMove.target.y === r && lastMove.target.x === c);
+                const isInSequence = (sequences || [])
+                    .flatMap((sequence: Location[]) => sequence)
+                    .some((sequenceLocation: Location) => location.equals(sequenceLocation));
                 const classes = ['board-cell'];
                 selected && classes.push('selected');
                 lastSelectionSource && classes.push('last-selection-source');
                 lastSelectionTarget && classes.push('last-selection-target');
+                isInSequence && classes.push('in-sequence');
                 cells.push(
                     <td className={classes.join(' ')} 
                         id={subNotation} key={subNotation} 
@@ -114,4 +117,7 @@ export interface BoardInterface {
     human: Player;
     playMove: (move: Move) => boolean;
     lastMove: Move | null | undefined;
+    source: Location | null | undefined;
+    setSource: Dispatch<SetStateAction<Location | null | undefined>>;
+    sequences: Location[][];
 }
