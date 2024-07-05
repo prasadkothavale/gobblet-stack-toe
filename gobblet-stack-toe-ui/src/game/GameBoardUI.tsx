@@ -1,11 +1,11 @@
 import { GameConfig, Gobblet, Move, Location, Constants, Player } from "@aehe-games/gobblet-stack-toe-engine/src/interface";
 import SizedStack from "@aehe-games/gobblet-stack-toe-engine/src/sized-stack";
 import GobbletUI from "./GobbletUI";
-import { Dispatch, ReactElement, SetStateAction, useRef } from "react";
+import { Dispatch, MutableRefObject, ReactElement, SetStateAction, useRef } from "react";
 import './game-board-ui.css'
 import { Toast } from "primereact/toast";
 
-export default function GameBoardUI({board, externalStack, playMove, gameConfig, turn, human, lastMove, source, setSource, sequences}: BoardInterface) {
+export default function GameBoardUI({board, externalStack, playMove, gameConfig, turn, human, lastMove, source, setSource, sequences, selectedGobbletRef, selectedTargetRef}: BoardInterface) {
     const toast = useRef(null);
 
     const onCellClick = (location: Location) => {
@@ -26,10 +26,7 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
         } else if (location.equals(source)) {
             setSource(null);
         } else {
-            const isValid = playMove(new Move(source, location));
-            if (isValid) {
-                setSource(null);
-            }
+            playMove(new Move(source, location));
         }
     }
 
@@ -61,12 +58,13 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
                     <td className={classes.join(' ')} 
                         id={subNotation} key={subNotation} 
                         onClick={() => onCellClick(new Location(true, c, r))}
+                        ref={lastSelectionTarget ? selectedTargetRef : undefined}
                     >
-                        <GobbletUI gobblet={cell.peek()} />
+                        <GobbletUI gobblet={cell.peek()} gobbletRef={lastSelectionSource ? selectedGobbletRef : undefined} />
                     </td>);
             })
             rows.push(<tr key={r}>{cells}</tr>);
-        })
+        });
 
         return rows;
     }
@@ -92,7 +90,7 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
                 key={'#'+index} id={'#'+index}
                 onClick={() => onCellClick(new Location(false, null, index))}
             >
-                <GobbletUI gobblet={stack.peek()} />
+                <GobbletUI gobblet={stack.peek()} gobbletRef={lastSelection ? selectedGobbletRef:undefined}/>
             </td>;
         });
         return <table className="game-external-stack-ui">
@@ -115,9 +113,13 @@ export interface BoardInterface {
     gameConfig: GameConfig;
     turn: Player;
     human: Player;
-    playMove: (move: Move) => boolean;
+    playMove: (move: Move) => Promise<boolean>;
     lastMove: Move | null | undefined;
     source: Location | null | undefined;
     setSource: Dispatch<SetStateAction<Location | null | undefined>>;
     sequences: Location[][];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    selectedGobbletRef: MutableRefObject<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    selectedTargetRef: MutableRefObject<any>;
 }

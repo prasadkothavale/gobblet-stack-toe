@@ -40,7 +40,6 @@ export default class HeuristicBot implements Bot {
 
     public onNewGame(gameConfig: GameConfig, player: Player): void {
         this.player = player;
-        console.log(`----------------${this.player}-${this.depth}---------------`);
     }
 
     public minMax(board: SizedStack<Gobblet>[][], externalStack: SizedStack<Gobblet>[], config: GameConfig, move: Move, player: Player, depth: number, tree: string[]): MoveScore {
