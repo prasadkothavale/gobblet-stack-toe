@@ -41,7 +41,7 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
             const rowNum: number = r + 1;
             const cells = [<td key={rowNum}>{rowNum}</td>];
             row.forEach((cell: SizedStack<Gobblet>, c: number) => {
-                const location: Location = new Location(true, r, c);
+                const location: Location = new Location(true, c, r);
                 const subNotation: string = location.toSubNotation();
                 const selected = source && source.board && source.y === r && source.x === c;
                 const lastSelectionSource = lastMove && (lastMove.source.board && lastMove.source.y === r && lastMove.source.x === c);

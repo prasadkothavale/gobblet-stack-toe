@@ -65,6 +65,7 @@ export default function GameUI() {
         const game: Game = GameEngine.createGame(gameConfig);
         const board = GameEngine.getBoard(GameEngine.getBoardNumber(game.board, game.config), game.config);
         const externalStack = GameEngine.getExternalStack(GameEngine.getExternalStackNumber(game.externalStack, game.config), game.config);
+        setGame(game);
         setBoard(board);
         setExternalStack(externalStack);
         setExternalStack(game.externalStack);
