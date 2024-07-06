@@ -157,16 +157,17 @@ export default function GameUI() {
 
         const sourceRect = sourceCellElement.getBoundingClientRect();
         const targetRect = targetCellElement.getBoundingClientRect();
-        const xTranslate = targetRect.left - sourceRect.left;
-        const yTranslate = targetRect.top - sourceRect.top;
+        const xTranslate = targetRect.left - sourceRect.left + 2;
+        const yTranslate = targetRect.top - sourceRect.top + 2;
         gobbletElement.style.transitionDuration = '500ms';
         gobbletElement.style.transform = `translate(${xTranslate}px, ${yTranslate}px)`;
+        gobbletElement.style.zIndex = '4';
         return new Promise((resolve) => {
             setTimeout(() => {
                 gobbletElement.style.transitionDuration = '0ms';
                 gobbletElement.style.transform = `translate(0px, 0px)`;
                 resolve();
-            }, 500); // should be same as transition-duration of .gobblet css class
+            }, 500); // should be same as transition-duration of .gobblet css class + some buffer time
         });
     }
 

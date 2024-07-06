@@ -21,16 +21,33 @@
     width: 20px;
     height: 20px;
     border-radius: 10px;
+    z-index: 1;
 }
 
 .gobblet-1 {
     width: 36px;
     height: 36px;
     border-radius: 18px;
+    z-index: 2;
 }
 
 .gobblet-2 {
     width: 50px;
     height: 50px;
     border-radius: 25px;
+    z-index: 3;
+}
+
+.gobblet-stack {
+    width: 60px;
+    height: 60px;
+    position: relative;
+}
+
+.gobblet-stack > .gobblet {
+    position: absolute;
+    left:0;
+    right:0;
+    top: 0;
+    bottom: 0;
 }

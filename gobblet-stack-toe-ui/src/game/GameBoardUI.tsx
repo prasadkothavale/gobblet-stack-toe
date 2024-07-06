@@ -60,7 +60,7 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
                         onClick={() => onCellClick(new Location(true, c, r))}
                         ref={lastSelectionTarget ? selectedTargetRef : undefined}
                     >
-                        <GobbletUI gobblet={cell.peek()} gobbletRef={lastSelectionSource ? selectedGobbletRef : undefined} />
+                        <GobbletUI cell={cell} gobbletRef={lastSelectionSource ? selectedGobbletRef : undefined} />
                     </td>);
             })
             rows.push(<tr key={r}>{cells}</tr>);
@@ -90,7 +90,7 @@ export default function GameBoardUI({board, externalStack, playMove, gameConfig,
                 key={'#'+index} id={'#'+index}
                 onClick={() => onCellClick(new Location(false, null, index))}
             >
-                <GobbletUI gobblet={stack.peek()} gobbletRef={lastSelection ? selectedGobbletRef:undefined}/>
+                <GobbletUI cell={stack} gobbletRef={lastSelection ? selectedGobbletRef:undefined}/>
             </td>;
         });
         return <table className="game-external-stack-ui">
