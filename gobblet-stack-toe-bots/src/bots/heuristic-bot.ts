@@ -4,6 +4,7 @@ import Bot from './bot';
 import SizedStack from '@aehe-games/gobblet-stack-toe-engine/src/sized-stack';
 import { getGameMode } from '../utils/game-config-utils';
 import SortedArray from '@aehe-games/gobblet-stack-toe-engine/src/sorted-array';
+import * as wt from 'worker-thread';
 
 const cellScores = {
     'beginner' : [[3, 2, 3], [2, 4, 2], [3, 2, 3]],
@@ -13,13 +14,15 @@ const cellScores = {
 export default class HeuristicBot implements Bot {
 
     player: Player;
-    private depth;
+    private depth: number;
     mode: string;
     private cache: Map<Player, Map<number, SortedArray<BoardNumberScore>>> = new Map<Player, Map<number, SortedArray<BoardNumberScore>>>();
     private enableCaching: boolean = true;
+    private cpus: number;
 
     constructor (depth: number) {
         this.depth = depth;
+        this.cpus = 16; // TODO: caller should pass the value either using navigator.hardwareConcurrency or os.cpus().length
     }
 
     public canPlay(gameConfig: GameConfig): boolean {
@@ -76,6 +79,53 @@ export default class HeuristicBot implements Bot {
         }
 
         return { score: moveScoreBoard.score, move, boardNumber: moveScoreBoard.boardNumber, player: moveScoreBoard.player, tree: moveScoreBoard.tree };
+    }
+
+    public playMoveAsync(game: Game, setBotProgress: Function): Promise<Move> { 
+        return new Promise<Move>((resolve, reject) => {
+            const moves: Move[] = GameEngine.getValidMoves(game);
+            const scoreBoards: MoveScore[] = [];
+            const channel = wt.createChannel(this.minMaxAsync, moves.length);
+            let movesVisited = 0;
+            
+            channel.on('done', (error: Error, moveScore: MoveScore) => {
+                movesVisited++;
+                setBotProgress(100 * movesVisited / moves.length);
+
+                if (error) {
+                    reject(error);
+                } else {
+                    scoreBoards.push(moveScore);
+                }
+            });
+            
+            channel.on('stop', () => {
+                const moveScore: MoveScore = this.getBestScoreBoard(scoreBoards, this.player);
+                resolve(moveScore.move);
+            });
+
+            channel.on('error', (error: Error) => {
+                reject(error);
+            });
+
+            moves.forEach((nextMove: Move) => {
+                channel.add({
+                    board: game.board, 
+                    externalStack: game.externalStack, 
+                    config: game.config, 
+                    move: nextMove, 
+                    player: this.player, 
+                    depth: this.depth, 
+                    tree: [nextMove.toNotation()]
+                });
+            });
+        });
+    }
+
+    private minMaxAsync(p: MinMaxParams): Promise<MoveScore> {
+        return new Promise((resolve) => {
+            resolve(this.minMax(p.board, p.externalStack, p.config, p.move, p.player, p.depth, p.tree));
+        });
     }
 
     private getBestScoreBoard(scoreBoards: MoveScore[], player: Player): MoveScore {
@@ -156,4 +206,14 @@ class BoardNumberScore {
     public static boardNumberComparator(a: BoardNumberScore, b: BoardNumberScore): number {
         return a.boardNumber === b.boardNumber ? 0 : a.boardNumber < b.boardNumber ? -1 : 1;
     }
+}
+
+interface MinMaxParams {
+    board: SizedStack<Gobblet>[][];
+    externalStack: SizedStack<Gobblet>[];
+    config: GameConfig;
+    move: Move;
+    player: Player;
+    depth: number;
+    tree: string[];
 }
