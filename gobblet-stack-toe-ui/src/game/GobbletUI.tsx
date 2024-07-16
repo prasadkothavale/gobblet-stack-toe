@@ -7,7 +7,6 @@ export default function GobbletUI({cell, gobbletRef} : {cell: SizedStack<Gobblet
     const cellArray = cell.toArray();
     const gobblet = cellArray.length > 0? cell.peek() : null;
     const capturedGobblet = cellArray.length > 1? cellArray[cellArray.length - 2] : null;
-    console.log(cellArray.length > 1? cellArray : null);
     
     if (gobblet) {
         if (capturedGobblet) {

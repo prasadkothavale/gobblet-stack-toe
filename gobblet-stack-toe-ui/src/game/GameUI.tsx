@@ -56,6 +56,7 @@ export default function GameUI() {
             .then(() => postPlayMove(lastMove))
             .catch(() => {console.warn('animation failed')});
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMove]);
 
     const init = (difficulty: number, human: Player) => {
