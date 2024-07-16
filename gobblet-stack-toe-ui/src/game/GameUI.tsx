@@ -122,6 +122,9 @@ export default function GameUI() {
     }
 
     const botsTurn = async () => {
+        /*const nextMove: Move = await heuristicBot.playMoveAsync(game, setBotProgress);
+        onPlayMove(nextMove);
+        return nextMove;*/
         return new Promise((resolve) => {
             setTimeout(() => {
                 const moves: Move[] = GameEngine.getValidMoves(game);
