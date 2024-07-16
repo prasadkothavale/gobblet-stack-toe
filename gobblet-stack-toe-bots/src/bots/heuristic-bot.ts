@@ -33,12 +33,13 @@ export default class HeuristicBot implements Bot {
         this.mode = getGameMode(gameConfig) || null;
     }
 
-    public playMove(game: Game): Move {
-        const moves: Move[] = GameEngine.getValidMoves(game);
+    public playMove(game: Game): Promise<Move> {
+        /*const moves: Move[] = GameEngine.getValidMoves(game);
         const scoreBoards: MoveScore[] = moves.map((nextMove: Move) => 
             this.minMax(game.board, game.externalStack, game.config, nextMove, this.player, this.depth, [nextMove.toNotation()]));
         const moveScore: MoveScore = this.getBestScoreBoard(scoreBoards, this.player)
-        return moveScore.move;
+        return moveScore.move;*/
+        return this.playMoveAsync(game, null);
     }
 
     public onNewGame(gameConfig: GameConfig, player: Player): void {
@@ -90,7 +91,7 @@ export default class HeuristicBot implements Bot {
             
             channel.on('done', (error: Error, moveScore: MoveScore) => {
                 movesVisited++;
-                setBotProgress(100 * movesVisited / moves.length);
+                setBotProgress && setBotProgress(100 * movesVisited / moves.length);
 
                 if (error) {
                     reject(error);

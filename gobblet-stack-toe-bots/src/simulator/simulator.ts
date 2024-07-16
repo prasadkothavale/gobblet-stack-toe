@@ -51,7 +51,7 @@ export default class Simulator {
             while(game.state.status === GameStatus.LIVE) {
                 let move: Move;
                 try {
-                    move = turn.playMove(game);
+                    move = await turn.playMove(game);
                     GameEngine.performMove(game, move);
                     const current = turn;
                     turn = next;

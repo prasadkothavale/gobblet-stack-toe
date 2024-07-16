@@ -27,9 +27,9 @@ export default class SimpleNNBot implements Bot {
         this.player = player;
     }
 
-    public playMove(game: Game): Move {
+    public playMove(game: Game): Promise<Move> {
         const moves: Move[] = GameEngine.getValidMoves(game);
-        return this.player === Player.WHITE? this.getBestWhiteMove(moves, game) : this.getBestBlackMove(moves, game);
+        return Promise.resolve(this.player === Player.WHITE? this.getBestWhiteMove(moves, game) : this.getBestBlackMove(moves, game));
     }
 
     private getBestWhiteMove(moves: Move[], game: Game): Move {

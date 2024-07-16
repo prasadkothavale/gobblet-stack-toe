@@ -41,10 +41,10 @@ export default class MatchboxBot implements Bot {
         this.player = player;
     }
     
-    public playMove(game: Game): Move {
+    public playMove(game: Game): Promise<Move> {
         const moves: Move[] = GameEngine.getValidMoves(game);
         if (Math.random() <= this.randomness) {
-            return moves[Math.round(Math.random() * (moves.length - 1))];
+            return Promise.resolve(moves[Math.round(Math.random() * (moves.length - 1))]);
         }
         const moveMatchboxes: MoveMatchbox[] = this.minMax(game.board, game.externalStack, game.config, moves, this.player, this.depth);
         
@@ -54,11 +54,11 @@ export default class MatchboxBot implements Bot {
         if (Math.random() <= this.learningRate) {
             // play less confident best move to learn a new move
             const lessConfidentMoves: MoveMatchbox[] = moveMatchboxes.filter((moveMatchBox: MoveMatchbox) => moveMatchBox.xp <= minXp);
-            return this.getBestMove(lessConfidentMoves.length > 0? lessConfidentMoves: moveMatchboxes, false, this.player);
+            return Promise.resolve(this.getBestMove(lessConfidentMoves.length > 0? lessConfidentMoves: moveMatchboxes, false, this.player));
         } else {
             // play known best move
             const confidentMoves: MoveMatchbox[] = moveMatchboxes.filter((moveMatchBox: MoveMatchbox) => moveMatchBox.xp > minXp);
-            return this.getBestMove(confidentMoves.length > 0? confidentMoves: moveMatchboxes, true, this.player);
+            return Promise.resolve(this.getBestMove(confidentMoves.length > 0? confidentMoves: moveMatchboxes, true, this.player));
         }
     }
 

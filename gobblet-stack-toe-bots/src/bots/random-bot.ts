@@ -8,8 +8,8 @@ export default class RandomBot implements Bot {
         return true;
     }
 
-    playMove(game: Game): Move {
+    playMove(game: Game): Promise<Move> {
         const moves: Move[] = GameEngine.getValidMoves(game);
-        return moves[Math.round(Math.random() * (moves.length - 1))];
+        return Promise.resolve(moves[Math.round(Math.random() * (moves.length - 1))]);
     }
 }

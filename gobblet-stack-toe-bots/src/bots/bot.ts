@@ -27,7 +27,7 @@ export default interface Bot {
      * @param game 
      * @returns the next move
      */
-    playMove(game: Game): Move
+    playMove(game: Game): Promise<Move>
 
     /**
      * Tells bot the game has ended

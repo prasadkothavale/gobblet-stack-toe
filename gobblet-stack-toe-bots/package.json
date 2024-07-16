@@ -48,6 +48,12 @@
     "ts-node": "^10.9.2",
     "typescript-eslint": "^7.8.0"
   },
+  "dependencies": {
+    "2d-array-rotation": "^2.1.1",
+    "cli-progress": "^3.12.0",
+    "moment": "^2.30.1",
+    "ndjson": "^2.0.0"
+  },
   "jest": {
     "typeAcquisition": {
       "include": [
@@ -57,11 +63,5 @@
     "testPathIgnorePatterns": [
       "dist"
     ]
-  },
-  "dependencies": {
-    "2d-array-rotation": "^2.1.1",
-    "moment": "^2.30.1",
-    "ndjson": "^2.0.0",
-    "worker-thread": "^1.1.0"
   }
 }
