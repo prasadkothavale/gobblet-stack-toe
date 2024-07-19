@@ -30,6 +30,15 @@ export default interface Bot {
     playMove(game: Game): Promise<Move>
 
     /**
+     * For provided game, the bot calculates the next move that can be played. 
+     * It takes progress setter call back function to set progress of the move calculation in percentage.
+     * @param game 
+     * @param progressSetter
+     * @returns the next move
+     */
+    playMoveWithProgress?(game: Game, progressSetter: (progress: number) => void): Promise<Move>
+
+    /**
      * Tells bot the game has ended
      * @param game
      */

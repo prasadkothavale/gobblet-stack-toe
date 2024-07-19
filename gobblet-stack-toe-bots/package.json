@@ -13,7 +13,8 @@
     "postinstall": "node post-install.js",
     "simulation": "ts-node src/simulator/simulation.ts",
     "training": "ts-node src/simulator/training.ts",
-    "itr-train": "ts-node src/simulator/iterative-training.ts"
+    "itr-train": "ts-node src/simulator/iterative-training.ts",
+    "game": "npm run build && ts-node src/game.ts"
   },
   "repository": {
     "type": "git",
@@ -52,7 +53,8 @@
     "2d-array-rotation": "^2.1.1",
     "cli-progress": "^3.12.0",
     "moment": "^2.30.1",
-    "ndjson": "^2.0.0"
+    "ndjson": "^2.0.0",
+    "prompt-sync": "^4.2.0"
   },
   "jest": {
     "typeAcquisition": {

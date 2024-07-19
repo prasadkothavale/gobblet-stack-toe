@@ -4,7 +4,9 @@ import Bot from './bot';
 import SizedStack from '@aehe-games/gobblet-stack-toe-engine/src/sized-stack';
 import { getGameMode } from '../utils/game-config-utils';
 import SortedArray from '@aehe-games/gobblet-stack-toe-engine/src/sorted-array';
-import * as wt from 'worker-thread';
+import WorkerFactory from '../utils/worker-factory';
+import * as path from 'path';
+
 
 const cellScores = {
     'beginner' : [[3, 2, 3], [2, 4, 2], [3, 2, 3]],
@@ -15,14 +17,15 @@ export default class HeuristicBot implements Bot {
 
     player: Player;
     private depth: number;
+    private gameConfig: GameConfig;
     mode: string;
     private cache: Map<Player, Map<number, SortedArray<BoardNumberScore>>> = new Map<Player, Map<number, SortedArray<BoardNumberScore>>>();
     private enableCaching: boolean = true;
-    private cpus: number;
+    private workerFactory: WorkerFactory<MinMaxParams, MoveScore>;
 
     constructor (depth: number) {
         this.depth = depth;
-        this.cpus = 16; // TODO: caller should pass the value either using navigator.hardwareConcurrency or os.cpus().length
+        this.workerFactory = new WorkerFactory<MinMaxParams, MoveScore>;
     }
 
     public canPlay(gameConfig: GameConfig): boolean {
@@ -30,6 +33,7 @@ export default class HeuristicBot implements Bot {
     }
 
     public onLoad(gameConfig: GameConfig): void {
+        this.gameConfig = gameConfig;
         this.mode = getGameMode(gameConfig) || null;
     }
 
@@ -39,7 +43,7 @@ export default class HeuristicBot implements Bot {
             this.minMax(game.board, game.externalStack, game.config, nextMove, this.player, this.depth, [nextMove.toNotation()]));
         const moveScore: MoveScore = this.getBestScoreBoard(scoreBoards, this.player)
         return moveScore.move;*/
-        return this.playMoveAsync(game, null);
+        return this.playMoveWithProgress(game, null);
     }
 
     public onNewGame(gameConfig: GameConfig, player: Player): void {
@@ -82,50 +86,34 @@ export default class HeuristicBot implements Bot {
         return { score: moveScoreBoard.score, move, boardNumber: moveScoreBoard.boardNumber, player: moveScoreBoard.player, tree: moveScoreBoard.tree };
     }
 
-    public playMoveAsync(game: Game, setBotProgress: Function): Promise<Move> { 
+    public playMoveWithProgress(game: Game, setBotProgress: (progress: number) => void): Promise<Move> { 
         return new Promise<Move>((resolve, reject) => {
             const moves: Move[] = GameEngine.getValidMoves(game);
-            const scoreBoards: MoveScore[] = [];
-            const channel = wt.createChannel(this.minMaxAsync, moves.length);
             let movesVisited = 0;
-            
-            channel.on('done', (error: Error, moveScore: MoveScore) => {
-                movesVisited++;
-                setBotProgress && setBotProgress(100 * movesVisited / moves.length);
-
-                if (error) {
-                    reject(error);
-                } else {
-                    scoreBoards.push(moveScore);
-                }
-            });
-            
-            channel.on('stop', () => {
-                const moveScore: MoveScore = this.getBestScoreBoard(scoreBoards, this.player);
-                resolve(moveScore.move);
-            });
-
-            channel.on('error', (error: Error) => {
-                reject(error);
-            });
-
-            moves.forEach((nextMove: Move) => {
-                channel.add({
-                    board: game.board, 
-                    externalStack: game.externalStack, 
+            const promises: Promise<void | MoveScore>[] = moves.map((nextMove: Move) => {
+                const workerData: MinMaxParams = {
+                    boardNumber: GameEngine.getBoardNumber(game.board, this.gameConfig).toString(), 
+                    externalStackNumber: GameEngine.getExternalStackNumber(game.externalStack, this.gameConfig).toString(),
                     config: game.config, 
-                    move: nextMove, 
+                    moveNotation: nextMove.toNotation(), 
                     player: this.player, 
                     depth: this.depth, 
+                    mode: this.mode,
                     tree: [nextMove.toNotation()]
-                });
+                }
+                return this.workerFactory.submitJob(path.resolve(__dirname, '..', '..', 'dist', 'bots', 'heuristic-bot-worker.js'), workerData)
+                    .then((response) => {
+                        setBotProgress(Math.round(++movesVisited*100/moves.length));
+                        return response;
+                    }).catch(reject)
             });
-        });
-    }
 
-    private minMaxAsync(p: MinMaxParams): Promise<MoveScore> {
-        return new Promise((resolve) => {
-            resolve(this.minMax(p.board, p.externalStack, p.config, p.move, p.player, p.depth, p.tree));
+            Promise.all(promises)
+                .then((moveScores: MoveScore[]) => {
+                    resolve(Move.fromNotation(this.getBestScoreBoard(moveScores, this.player).moveNotation));
+                })
+                .catch(reject);
+            
         });
     }
 
@@ -194,6 +182,7 @@ export default class HeuristicBot implements Bot {
 export interface MoveScore {
     score: number;
     move: Move;
+    moveNotation?: string;
     boardNumber: bigint;
     player: Player;
     tree: string[];
@@ -210,11 +199,12 @@ class BoardNumberScore {
 }
 
 interface MinMaxParams {
-    board: SizedStack<Gobblet>[][];
-    externalStack: SizedStack<Gobblet>[];
+    boardNumber: string;
+    externalStackNumber: string;
     config: GameConfig;
-    move: Move;
+    moveNotation: string;
     player: Player;
     depth: number;
     tree: string[];
+    mode: string;
 }

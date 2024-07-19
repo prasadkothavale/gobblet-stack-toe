@@ -1,37 +1,38 @@
 import { Worker } from 'node:worker_threads';
 import Queue from './queue';
 import os = require('os');
-import path = require('path');
 
 const cpuCores = os.cpus().length;
-export default class WorkerFactory<P, R> {
+export default class WorkerFactory<InputType, ResponseType> {
     private static maxWorkers = cpuCores > 2? cpuCores - 1 : cpuCores;
     private static activeWorkers = 0;
-    private queue: Queue<JobItem<P, R>> = new Queue();
 
+    private queue: Queue<JobItem<InputType, ResponseType>> = new Queue();
 
-    public submitJob(job: WorkerJob<P, R>): Promise<R> {
+    public submitJob(workerThread: string, workerData: InputType): Promise<ResponseType> {
         return new Promise((resolve, reject) => {
             if (WorkerFactory.activeWorkers < WorkerFactory.maxWorkers) {
                 WorkerFactory.activeWorkers++;
-                this.executeJob(job).then(resolve).catch(reject);
+                this.executeJob(workerThread, workerData).then(resolve).catch(reject);
             } else {
-                this.queue.add({resolve, reject, job});
+                this.queue.add({resolve, reject, workerThread, workerData});
             }
         });
     }
 
-    private executeJob(workerData: WorkerJob<P, R>): Promise<R> {
+    private executeJob(workerThread: string, workerData: InputType): Promise<ResponseType> {
         return new Promise((resolve, reject) => {
-            const worker = new Worker(path.join(__dirname, 'worker-thread.js'), {workerData});
+            const worker = new Worker(workerThread, {workerData});
             worker.on('message', resolve);
             worker.on('error', reject);
             worker.on('exit', (code) => {
                 if (code === 0) {
                     if (!this.queue.isEmpty()) {
                         const jobItem = this.queue.remove();
-                        this.executeJob(jobItem.job).then(jobItem.resolve).catch(jobItem.reject);
-                    } 
+                        this.executeJob(jobItem.workerThread, jobItem.workerData).then(jobItem.resolve).catch(jobItem.reject);
+                    } else {
+                        WorkerFactory.activeWorkers--;
+                    }
                 } else {
                     reject(new Error(`Worker stopped with exit code ${code}`));
                 }
@@ -42,13 +43,9 @@ export default class WorkerFactory<P, R> {
     
 }
 
-export interface WorkerJob<P, R> {
-    function: (param: P) => R;
-    param: P;
-}
-
-interface JobItem<P, R> {
-    resolve: (value: R | PromiseLike<R>) => void;
-    reject: (reason?: any) => void;
-    job: WorkerJob<P, R>;
+interface JobItem<InputType, ResponseType> {
+    resolve: (value: ResponseType | PromiseLike<ResponseType>) => void;
+    reject: (reason?: Error) => void;
+    workerThread: string;
+    workerData: InputType;
 }

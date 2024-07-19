@@ -35,10 +35,8 @@ describe('Worker factory', () => {
         const workerFactory = new WorkerFactory<number, number[]>();
         const workerAnswers = {};
         await Promise.all(
-            testData.map(number => workerFactory.submitJob({
-                function: findPrimeFactors,
-                param: number
-            }).then(factors => workerAnswers[number] = factors))
+            testData.map(number => workerFactory.submitJob('', number)
+                .then(factors => workerAnswers[number] = factors))
         );
         const end = new Date().getTime();
 
