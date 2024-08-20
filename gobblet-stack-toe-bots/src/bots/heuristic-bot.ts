@@ -103,7 +103,7 @@ export default class HeuristicBot implements Bot {
                 }
                 return this.workerFactory.submitJob(path.resolve(__dirname, '..', '..', 'dist', 'bots', 'heuristic-bot-worker.js'), workerData)
                     .then((response) => {
-                        setBotProgress(Math.round(++movesVisited*100/moves.length));
+                        setBotProgress && setBotProgress(Math.round(++movesVisited*100/moves.length));
                         return response;
                     }).catch(reject)
             });

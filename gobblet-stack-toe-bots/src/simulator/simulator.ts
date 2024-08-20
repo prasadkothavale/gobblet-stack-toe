@@ -4,6 +4,7 @@ import Bot from '../bots/bot';
 import SimulationResult, {PlayerResult, BotResult} from './simulation-result';
 import {writeGameNdJson} from '../utils/file-utils';
 import getGameConfig from '../utils/game-config-utils';
+import * as cliProgress from 'cli-progress';
 
 export default class Simulator {
 
@@ -35,6 +36,8 @@ export default class Simulator {
      */
     public async runSimulations(): Promise<SimulationResult> {
         const result: SimulationResult = this.getInitialSimulationResult();
+        const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+        bar.start(this.simulations, 0);
 
         for (let execution = 0; execution < this.simulations; execution++) {
             const game: Game = GameEngine.createGame(this.gameConfig);
@@ -84,10 +87,12 @@ export default class Simulator {
             }
 
             await this.writeFile(game);
+            bar.update(execution + 1);
 
         }
         this.bot1.unload? this.bot1.unload() : undefined;
         this.bot2.unload? this.bot2.unload() : undefined;
+        bar.stop();
 
         return result;
     }
